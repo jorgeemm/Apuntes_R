@@ -1,5 +1,5 @@
 ####Apertura de los datos y librerías####
-setwd("C:/Users/Lenovo/OneDrive/Escritorio/Apuntes R")
+setwd("C:/Users/Lenovo/OneDrive/Escritorio/Apuntes_R")
 
 library(tidyverse)
 library(haven)

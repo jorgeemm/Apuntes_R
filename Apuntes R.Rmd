@@ -20,8 +20,8 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,
 ```
 
 
-```{r cosas previas include=FALSE}
-setwd("C:/Users/Lenovo/OneDrive/Escritorio/Apuntes R")
+```{r include=FALSE}
+setwd("C:/Users/Lenovo/OneDrive/Escritorio/Apuntes_R")
 library(tidyverse)
 library(pacman)
 source("00_datos/source.R")
@@ -1675,7 +1675,7 @@ p_load(arm)
 coefplot(modelPP, xlim=c(-5, 5),col.pts="blue", intercept=TRUE, main="Coeficientes de la regresión")
 ```
 
-Este tipo de gráfico es particularmente útil cuando quereos coparar los coeficientes de dos o más. Por ejemplo, si calculamos el mismo modelo para estimar la propensión de voto al PSOE, podemos visualizar los coeficientes de ambos modelos de la siguiente manera
+Este tipo de gráfico es particularmente útil cuando queremos **comparar los coeficientes de dos o más modelos**. Por ejemplo, si calculamos el mismo modelo para estimar la propensión de voto al PSOE, podemos visualizar los coeficientes de ambos modelos de la siguiente manera
 
 ```{r fig1, fig.heigh=3, fig.with=5, message=F, warning=FALSE}
 #Estimamos el modelo
@@ -1707,9 +1707,11 @@ summary(betaPP)
 
 Los coeficientes estandarizados representan la cantidad de cambio, en unidades de desviación estándar, que se producirá en la variable dependiente por cada aumento de una unidad de desviación estándar en la correspondiente variable independiente (manteniendo constantes las demás variables). Al estandarizar las variables, la constante se iguala a 0, por lo que no se incluye en la ecuación de predicción. Estos coeficientes indican la importancia relativa de cada variable independiente en la ecuación de regresión. En general, cuanto mayor es el valor absoluto del coeficiente de regresión estandarizado, mayor es el peso de la variable en la ecuación de regresión.
 
+<br>
 
 **Bondad de ajuste del modelo** 
 El R^2^ tiene un valor de 0.5873, lo que indica que nuestro modelo explica el 58.73% de varianza de la VD. En este caso, el valor de  R^2^ ajustado es prácticamente idéntico.
+
 <br>
 
 ##### Diagnóstico de la regresión {#supuestoS}
@@ -1734,7 +1736,7 @@ het.lm<-bptest(modelPP)
 het.lm
 ```
 
-La hipótesis nula en este test es que la varianza de los residuos es constante (homocedástica). La evidencia permite rechazar la hipótesis nula, confirmando que la distribución es heterocedástica. 
+La hipótesis nula en este test es que la varianza de los residuos es constante (homocedástica). La evidencia permite rechazar la hipótesis nula, confirmando que la distribución es heterocedástica (no se cumple el suspuesto). La distrivución de los residuos no es constante. 
 
   + Gráficamente: 
 ```{r}
@@ -1777,7 +1779,7 @@ yhat2
 
 **Intervalos de confianza**
 
-Los intervalos de confianza reflejan la incertidumbre alrededor de las estimaciones medias. Siguiendo con el ejemplo anterior, vamos a calcular las probabilides predichas con sus intervalos de confianza para todos los individuos en la muestra:
+Los intervalos de confianza reflejan la incertidumbre alrededor de las estimaciones medias. Siguiendo con el ejemplo anterior, vamos a calcular las probabilides predichas con sus intervalos de confianza para todos los individuos en la muestra (*fit es el valor predicho*):
 
 ```{r}
 yhat<-predict(modelPP, newdata = datos_red, interval = "confidence")
@@ -1807,26 +1809,22 @@ head(yhat)
 ##### Exportar resultados {#Exportar}
 Vamos a exportar a formato científico los dos modelos que hemos estimado: modelPP y modelPSOE
 
-1. Librería stargazer
+**Librería stargazer**
 ```{r message=F, warning=F}
 #install.packages("stargazer")
 library(stargazer)
-stargazer(modelPP, modelPSOE,      #Incluir aquí M1, M2, M3...
+stargazer(modelPP, modelPSOE,      #Incluir aquí Modelo1, Modelo2, M3...
           type="text",
           dep.var.labels=c("Propensión voto PP", "Propensión voto PSOE"),
           covariate.labels=c("Edad", "Hombre", "Estudios superiores", "Economia personal: positiva (cr:neg)", "Economia país: positiva (cr:neg)", "Voto 2019:PP (cr: PSOE)", "Voto 2019:VOX (cr: PSOE)", "Voto 2019:Podemos (cr: PSOE)", "Voto 2019:C´s (cr: PSOE)", "Voto 2019:Más Madrid (cr: PSOE)", "Voto 2019:Otros (cr: PSOE)", "Voto 2019:Blanco (cr: PSOE)", "Ideología", "Constante"))
 ```
+<br>
 
-2. Librería jtools. Está disponible únicamente para un tipo de modelos muy limitado, pero OLS y GLM están incluidos.
+**Librería jtools**. Está disponible únicamente para un tipo de modelos muy limitado, pero OLS y GLM están incluidos.
 
 Instalamos los paquetes que van a hacernos falta 
 ```{r message=F, warning=FALSE}
-#install.packages("jtools")
-#install.packages("ggstance")
-#install.packages("huxtable")
-library(jtools)
-library(ggstance)
-library(huxtable)
+p_load(jtools, ggstance, huxtable)
 ```
 
 La función `summ()` muestra los resultados de la regresión
@@ -1879,11 +1877,13 @@ export_summs(modelPP, modelPSOE,
 ```
 <br>
 
-##### Comparación de modelos {#cpmparar_modelos}
+##### Comparación de modelos {#comparar_modelos}
 
 Es muy frecuente tener que elegir entre diferentes modelos. Hasta ahora, nos hemos fijado en el R^2^ para ver cuál era la bondad de ajuste del modelo. Aquí, vamos a introducir dos nuevos indicadores: __BIC__ (Criterio de Información Bayesiano) y __AIC__ (Criterio de Información de Akaike). 
 
-Cuando introducimos nuevas variables en el modelo aumentamos el ajuste, pero corremos el peligro de caer en sobreajuste. BIC y AIC resuelven este problema mediante la introducción de un término de penalización para el número de parámetros en el modelo (esta penalización es mayor en el BIC que en el AIC). Así, dados dos modelos estimados, el modelo con el menor valor de BIC/AIC es preferible. Existe también el AIC corregido (AICc), que es una variante del AIC para muestras reducidas (pocos datos).
+Cuando introducimos nuevas variables en el modelo aumentamos el ajuste (a mayor número de variables, mayor R^2^), pero corremos el peligro de caer en sobreajuste (introducir demasiadas variables, siendo algunas de ellas innecesarias para el modelo). Solo es conveniente incluir más variables en un modelo si la diferencia que añaden sobre la significatividad del modelo es lo suficiente relevante. BIC y AIC resuelven este problema mediante la introducción de un término de penalización para el número de parámetros en el modelo (esta penalización es mayor en el BIC que en el AIC). Así, dados dos modelos estimados, el modelo con el menor valor de BIC/AIC es preferible. Existe también el AIC corregido (AICc), que es una variante del AIC para muestras reducidas (pocos datos).
+
+*No es necesario realizar los dos análisis, sino que con uno de los dos es suficiente para ver qué modelo es más eficiente.*
 
 Estimamos los modelos con el dataset reducido. El modelo1 incluye sólamente la variable ideología. El modelo2 añade el sexo y el nivel educativo. El modelo3 es el full-model, que incluye la edad y la situación laboral del entrevistado.
 
@@ -1892,13 +1892,14 @@ modelo1 <- lm(prop_pp ~ hombre+estudios_universitarios, datos_red)
 modelo2 <- lm(prop_pp ~ hombre+estudios_universitarios+ ideol, datos_red)  
 modelo3 <- lm(prop_pp ~ hombre+estudios_universitarios+ideol+recuerdo19, datos_red)  
 ```
+
 Visualizamos los 3 modelos en una misma tabla
 ```{r message=F, warning=F}
 library(stargazer)
 stargazer(modelo1, modelo2, modelo3,    
           type="text",
           dep.var.labels=c("M1", "M2", "M3"),
-          covariate.labels=c("Edad", "Hombre", "Estudios superiores", "Economia personal: positiva (cr:neg)", "Economia país: positiva (cr:neg)", "Voto 2019:PP (cr: PSOE)", "Voto 2019:VOX (cr: PSOE)", "Voto 2019:Podemos (cr: PSOE)", "Voto 2019:C´s (cr: PSOE)", "Voto 2019:Más Madrid (cr: PSOE)", "Voto 2019:Otros (cr: PSOE)", "Voto 2019:Blanco (cr: PSOE)", "Ideología", "Constante"))
+          covariate.labels=c("Hombre", "Estudios superiores","Ideología", "Voto 2019:PP (cr: PSOE)", "Voto 2019:VOX (cr: PSOE)", "Voto 2019:Podemos (cr: PSOE)", "Voto 2019:C´s (cr: PSOE)", "Voto 2019:Más Madrid (cr: PSOE)", "Voto 2019:Otros (cr: PSOE)", "Voto 2019:Blanco (cr: PSOE)",  "Constante"))
 ```
 
 Y calculamos los BIC/AIC
