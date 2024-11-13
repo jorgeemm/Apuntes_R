@@ -1,0 +1,131 @@
+/* Título principal del documento */
+.title {
+    text-align: center;
+    width: 100%;
+    font-size: 1.8em;  /* Aumenta el tamaño del título */
+    margin: 6px 0 6px 0;  /* Aumenta el espacio superior e inferior */
+    padding: 10px 0;  /* Añade padding interno */
+}
+
+
+
+/* Centrar todas las pestañas de navegación */
+.nav-pills {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+
+
+/* Centrar el texto dentro de las pestañas */
+.nav-pills > li > a {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+}
+
+
+
+/* Estilos para pestañas según nivel de anidación */
+/* Primer nivel */
+.section.level1 > .nav-pills > li.active > a,
+.section.level1 > .nav-pills > li.active > a:hover,
+.section.level1 > .nav-pills > li.active > a:focus {
+    background-color: #51c6ff;
+    color: #333;
+}
+
+/* Segundo nivel */
+.section.level2 > .nav-pills > li.active > a,
+.section.level2 > .nav-pills > li.active > a:hover,
+.section.level2 > .nav-pills > li.active > a:focus {
+    background-color: #9de4fd;
+    color: #333;
+}
+
+/* Tercer nivel */
+.section.level3 > .nav-pills > li.active > a,
+.section.level3 > .nav-pills > li.active > a:hover,
+.section.level3 > .nav-pills > li.active > a:focus {
+    background-color: #e3fffc;
+    color: #333;
+}
+
+/* Cuarto nivel */
+.section.level4 > .nav-pills > li.active > a,
+.section.level4 > .nav-pills > li.active > a:hover,
+.section.level4 > .nav-pills > li.active > a:focus {
+    background-color: #eafff5;
+    color: #333;
+}
+
+
+
+/* Hover effects para cada nivel */
+/* Primer nivel */
+.section.level1 > .nav-pills > li > a:hover {
+    background-color: #f0f7ff;
+    color: #333;
+}
+
+/* Segundo nivel */
+.section.level2 > .nav-pills > li > a:hover {
+    background-color: #f5faff;
+    color: #333;
+}
+
+/* Tercer nivel */
+.section.level3 > .nav-pills > li > a:hover {
+    background-color: #f7fbff;
+    color: #333;
+}
+
+/* Cuarto nivel */
+.section.level4 > .nav-pills > li > a:hover {
+    background-color: #fafcff;
+    color: #333;
+}
+
+/* Transición suave para los cambios de color */
+.nav-pills > li > a {
+    transition: background-color 0.3s ease;
+}
+
+
+
+/* Tamaños de texto diferentes para cada nivel de pestañas */
+/* Primer nivel - todas las pestañas */
+.section.level1 > .nav-pills > li > a {
+    font-size: 1.2em;
+}
+
+/* Segundo nivel - todas las pestañas */
+.section.level2 > .nav-pills > li > a {
+    font-size: 1.1em;
+}
+
+/* Tercer nivel - todas las pestañas */
+.section.level3 > .nav-pills > li > a {
+    font-size: 1em;
+}
+
+/* Cuarto nivel - todas las pestañas */
+.section.level4 > .nav-pills > li > a {
+    font-size: 0.9em;
+}
+
+
+
+/* Hacer el borde de los tres *** más grueso del que viene por defecto */
+hr {
+  border: none;
+  border-top: 3px solid #bbb;
+  margin: 1em 0;
+}
+
+
+
