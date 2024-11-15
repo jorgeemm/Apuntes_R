@@ -470,6 +470,7 @@ text-align: justify}
 <div class="figcaption">Ventanas de R Studio</div>
 </div>
 </center>
+<p><br></p>
 <ul>
 <li>Editor de código: ficheros donde se escribe el código. Elemento
 clave para la reproducibilidad.</li>
@@ -515,11 +516,15 @@ solo se instalan una vez.</p>
 <li>Instalar la librería pacman.</li>
 <li>Abrir la librería.</li>
 <li>Cuando se vaya a abrir una nueva librería, en lugar de usar el
-comando <code>library(&quot;nombre_librería&quot;)</code> se usa
-<code>p_load(&quot;nombre_librería&quot;)</code>
+comando <code>library(nombre_librería)</code> se usa
+<code>p_load(nombre_librería)</code>
 <ul>
 <li>La ventaja de este comando es que, en caso de que no esté instalada
 la librería, se descargará y abrirá directamenta.</li>
+<li>Además, con el comando p_load se pueden abrir en un único comando
+varias librerías, lo que reduce la cantidad de espacio necesario para
+abrir las librerías:
+<code>p_load(librería_1, librería_2, librería_3...)</code></li>
 </ul></li>
 </ol>
 <p><strong>Paquetes de GitHub</strong>:</p>
@@ -543,6 +548,7 @@ sirven cada una de las cosas que se han añadido.</p>
 <li>Añadir un <strong>pipe</strong> (%&gt;%): ctrl + shift + m</li>
 <li>Añadir una almoadilla a la línea de código sobre la que se esté:
 ctrl + shift + c</li>
+<li>Añadir la &lt;- con sus espacios: alt + -</li>
 </ul>
 <p><strong>En RMarkdown</strong></p>
 <ul>
@@ -585,7 +591,25 @@ esquina de la pestaña del rmd, o usando Ctrl+Enter.</p>
 que no se muestre el código en el documento final pero se ejecute
 igualmente, no se muestren los errores… Estos ajustes se puedes escribir
 como comandos dentro de {r} o en la rueda de opciones que aparece a la
-derecha de cada chunk.</p>
+derecha de cada chunk. Algunas de estas opciones son:</p>
+<ul>
+<li>include: incluir los contenidos del chunk en el output</li>
+<li>message: mensajes de la consola</li>
+<li>warning: avisos de la consola</li>
+<li>echo: muestra el código</li>
+<li>eval: muestra el resultado del código (tabla, gráfico, etc.)</li>
+<li>…</li>
+</ul>
+<p>Si se quiere que alguna de estas opciones se aplique a todos los
+chunks del documento, en lugar de tener que especificarlas en cada nuevo
+bloque de código se pueden escribir una única vez al princicipio del
+documento del siguiente modo:</p>
+<pre class="r"><code>knitr::opts_chunk$set(warning = FALSE, # En caso de mensajes de alerta
+                      message = FALSE, # Otro tipo de mensajes
+                      echo = TRUE, # Mostrar el código
+                      results = TRUE) # Mostrar los resultados del código</code></pre>
+<p>Asimismo, los diferentes chunks del documento se les pueden dar
+nombres del siguiente modo: {r nombre chunk}</p>
 <p>Los chunks de R además permiten ejecutar todo el contenido de los
 chunks empleados con anterioridad, lo que puede resultar muy útil en el
 casdo de cometer errores que nedesitar resetear todo el trabajo
@@ -595,7 +619,7 @@ rueda y el triángulo verde).</p>
 <p><strong>Encabezados</strong></p>
 <p>Sirven para delimitar los diferentes apartados y subapartados de los
 documentos. Se crean con las # (en una nueva línea se escribiría: #
-Encabezado de nivel 1). El espacio entre la almohadilla y el texto es
+Encabezado de nivel 1. El espacio entre la almohadilla y el texto es
 imprescindible. Si en lugar de escribir una única # se ponen 2, 3… o 6,
 se van creando subniveles de encabezados (un mayor número de
 almohadillas indica un nivel inferior de encabezado).</p>
@@ -635,6 +659,11 @@ antes del símbolo, se creará una sublista:</p>
 </ul>
 <p>También se pueden hacer listas con números y letras: 1. 1) A. i.
 etc.</p>
+<p><strong>Citas</strong></p>
+<p>Se escribe el texto con un &gt; al principio de la línea:</p>
+<blockquote>
+<p>Ejemplo de una cita</p>
+</blockquote>
 <p><strong>Ecuaciones</strong></p>
 <p>Se escribe el texto de la ecuación entre dos símbolos del dolar. Ej.:
 $E=mc^{2}$ = <span class="math inline">\(E=mc^{2}\)</span></p>
@@ -1226,6 +1255,38 @@ base de datos del environment).</li>
 </div>
 <div id="modificar-el-fichero" class="section level3">
 <h3>3. Modificar el fichero</h3>
+<div id="filter-seleccionar-casos-filas" class="section level4">
+<h4>Filter: seleccionar casos (filas)</h4>
+<p>Se usa el comando <code>filter</code>, del paquete dplyr (en
+tidyverse). Se establecen una serie de condiciones lógicas a partir de
+las cuales la función retendrá únicamente los casos (filas) que cumplen
+con dicha condición (<em>condiciones como ==, &gt;, %in%</em>).</p>
+<p>Ej.: en una base de datos donde los casos son municipios, seleccionar
+solo aquellos pertenecientes a Murcia o Almería:</p>
+<pre class="r"><code>datos_2prov &lt;- datos %&gt;% 
+  filter(Provincia==&quot;Almería&quot; | Provincia==&quot;Murcia&quot;)
+  
+datos_2prov &lt;- datos %&gt;% 
+  filter(id_provincia %in% c(5,35))</code></pre>
+<p><em>Al usar tanto este comando como el select, conviene guardar los
+cambios dentro de un nuevo objeto y dejar el dataset original sin
+modificar</em></p>
+<p><br></p>
+</div>
+<div id="select-seleccionar-variables" class="section level4">
+<h4>Select: seleccionar variables</h4>
+<p>Se usa el comando <code>select</code>, del paquete dplyr. Esta
+función permite reducri el número de columnas, por lo que resulta de
+gran utilidad cuando tenemos datasets con muchas variables y solo vamos
+a trabajar con algunas de ellas.</p>
+<p>Seleccionar una columna:
+<code>select(datos, nombre_variable)</code>.</p>
+<p>Este comando permite seleccionar más de una variable a la vez:
+<code>select(datos, x1, x2, x3)</code>.</p>
+<p>Tambiéns se pueden eliminar una o varias variables que no se quieran
+en el dataset: <code>select(datos, -variable)</code></p>
+<p><br></p>
+</div>
 <div id="ordenar-las-variables" class="section level4">
 <h4>Ordenar las variables</h4>
 <p><strong>Variable numérica:</strong></p>
@@ -1252,98 +1313,13 @@ base de datos del environment).</li>
 </ul>
 <p><strong>Variable categórica:</strong></p>
 <ul>
-<li><p>Se usan los mismos comandos anteriores para ordenar por orden
-alfabético ascendente o descendente</p></li>
-<li><p>Orden personalizado:
+<li>Se usan los mismos comandos anteriores para ordenar por orden
+alfabético ascendente o descendente</li>
+<li>Orden personalizado:
 <code>mutate(variable = fct_relevel(variable, c(&quot;categoría1&quot;, &quot;cat2&quot;, &quot;catn&quot;)))</code>
-Ej.:</p>
-<pre class="r"><code>mutate(partido = fct_relevel(party, c(&quot;PP&quot;, &quot;PSOE&quot;, &quot;VOX&quot;, &quot;SUMAR&quot;, &quot;Otros&quot;)))</code></pre>
-<p><br></p></li>
+Ej.:</li>
 </ul>
-</div>
-<div id="seleccionar-y-eliminar-variables" class="section level4">
-<h4>Seleccionar (y eliminar) variables</h4>
-<p>Seleccionar una columna:</p>
-<pre class="r"><code>select(Datos, age)</code></pre>
-<pre><code>## # A tibble: 1,297 × 1
-##      age
-##    &lt;dbl&gt;
-##  1    29
-##  2     2
-##  3    30
-##  4    25
-##  5    48
-##  6    63
-##  7    39
-##  8    53
-##  9    71
-## 10    47
-## # ℹ 1,287 more rows</code></pre>
-<p>Seleccionar varias columnas:</p>
-<pre class="r"><code>select(Datos, name, sex, age)</code></pre>
-<pre><code>## # A tibble: 1,297 × 3
-##    name                                            sex      age
-##    &lt;chr&gt;                                           &lt;chr&gt;  &lt;dbl&gt;
-##  1 Allen, Miss. Elisabeth Walton                   female    29
-##  2 Allison, Miss. Helen Loraine                    female     2
-##  3 Allison, Mr. Hudson Joshua Creighton            male      30
-##  4 Allison, Mrs. Hudson J C (Bessie Waldo Daniels) female    25
-##  5 Anderson, Mr. Harry                             male      48
-##  6 Andrews, Miss. Kornelia Theodosia               female    63
-##  7 Andrews, Mr. Thomas Jr                          male      39
-##  8 Appleton, Mrs. Edward Dale (Charlotte Lamson)   female    53
-##  9 Artagaveytia, Mr. Ramon                         male      71
-## 10 Astor, Col. John Jacob                          male      47
-## # ℹ 1,287 more rows</code></pre>
-<p>Crear un nuevo data.frame con una selección de columnas. Esto es muy
-útil cuando tenemos datasets con muchas variables y queremos trabajar
-con algo más manejable:</p>
-<pre class="r"><code>Nuevos_Datos &lt;- select(Datos, name, sex, age) 
-head(Nuevos_Datos, 10)  # visualizamos el nuevo dataset</code></pre>
-<pre><code>## # A tibble: 10 × 3
-##    name                                            sex      age
-##    &lt;chr&gt;                                           &lt;chr&gt;  &lt;dbl&gt;
-##  1 Allen, Miss. Elisabeth Walton                   female    29
-##  2 Allison, Miss. Helen Loraine                    female     2
-##  3 Allison, Mr. Hudson Joshua Creighton            male      30
-##  4 Allison, Mrs. Hudson J C (Bessie Waldo Daniels) female    25
-##  5 Anderson, Mr. Harry                             male      48
-##  6 Andrews, Miss. Kornelia Theodosia               female    63
-##  7 Andrews, Mr. Thomas Jr                          male      39
-##  8 Appleton, Mrs. Edward Dale (Charlotte Lamson)   female    53
-##  9 Artagaveytia, Mr. Ramon                         male      71
-## 10 Astor, Col. John Jacob                          male      47</code></pre>
-<p>Tambiéns se pueden eliminar una o varias variables que no se quieran
-en el dataset:</p>
-<pre class="r"><code>Nuevos_Datos2 &lt;- select(Datos, -name) 
-head(Nuevos_Datos2, 10)</code></pre>
-<pre><code>## # A tibble: 10 × 4
-##    pclass survived sex      age
-##     &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;
-##  1      1        1 female    29
-##  2      1        0 female     2
-##  3      1        0 male      30
-##  4      1        0 female    25
-##  5      1        1 male      48
-##  6      1        1 female    63
-##  7      1        0 male      39
-##  8      1        1 female    53
-##  9      1        0 male      71
-## 10      1        0 male      47</code></pre>
-<p><em>Dataframe original, para comparar las diferencias:</em></p>
-<pre><code>## # A tibble: 10 × 5
-##    pclass survived name                                            sex      age
-##     &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;                                           &lt;chr&gt;  &lt;dbl&gt;
-##  1      1        1 Allen, Miss. Elisabeth Walton                   female    29
-##  2      1        0 Allison, Miss. Helen Loraine                    female     2
-##  3      1        0 Allison, Mr. Hudson Joshua Creighton            male      30
-##  4      1        0 Allison, Mrs. Hudson J C (Bessie Waldo Daniels) female    25
-##  5      1        1 Anderson, Mr. Harry                             male      48
-##  6      1        1 Andrews, Miss. Kornelia Theodosia               female    63
-##  7      1        0 Andrews, Mr. Thomas Jr                          male      39
-##  8      1        1 Appleton, Mrs. Edward Dale (Charlotte Lamson)   female    53
-##  9      1        0 Artagaveytia, Mr. Ramon                         male      71
-## 10      1        0 Astor, Col. John Jacob                          male      47</code></pre>
+<pre class="r"><code>mutate(partido = fct_relevel(party, c(&quot;PP&quot;, &quot;PSOE&quot;, &quot;VOX&quot;, &quot;SUMAR&quot;, &quot;Otros&quot;)))</code></pre>
 <hr />
 </div>
 </div>
@@ -1366,15 +1342,25 @@ head(Nuevos_Datos2, 10)</code></pre>
   edad=age)</code></pre>
 <pre class="r"><code>colnames(Datos)</code></pre>
 <pre><code>## [1] &quot;clase&quot;    &quot;survived&quot; &quot;nombre&quot;   &quot;sexo&quot;     &quot;edad&quot;</code></pre>
+<p><strong>Opción 3</strong>:</p>
+<p>Se pueden renombrar las variables directamente al abrir la base de
+datos gracias al pipe:</p>
+<pre class="r"><code>datos &lt;- read_xlsx(&quot;dirección_datos-xlsx&quot;) %&gt;% 
+  rename(nombre_nuevo = nombre_viejo,
+         nombre_nuevo = nombre_viejo,
+         ...)</code></pre>
 <hr />
 </div>
 <div id="recodificar-una-variable-o-crear-una-nueva" class="section level3">
 <h3>2. Recodificar una variable (o crear una nueva)</h3>
-<p><em>(Tanto <code>mutate</code> como <code>case_when</code> son
-comandos de la librería dplyr, que se incluye dentro del
-tidyverse)</em></p>
+<p>Para poder recodificar y crear varaibles se usa el comando
+<code>mutate</code> (<em>de dplyr</em>). Este es de gran utilidad si se
+usa junto a comandos que permiten añadir condiciones lógicas como
+<code>ifelse</code> o <code>case_when</code>.</p>
+<p><br></p>
+<p><strong>Pasos previos antes de recodificar una variable</strong></p>
 <p>Antes de recodificar una variable es necesario conocer cómo es la
-variable. Para ello:</p>
+variable original. Para ello:</p>
 <ol style="list-style-type: decimal">
 <li>Se mira de qué tipo es la varible (numérica -numeric/dbl- o factor)
 gracias al comando <code>class</code>:</li>
@@ -1389,6 +1375,21 @@ variable, así como su distribución:</li>
 <pre><code>## 
 ##   1   2   3 
 ## 322 273 702</code></pre>
+<p><br></p>
+<p><strong>Crear una nueva variable a partir de operaciones sobre otras
+existentes</strong></p>
+<ul>
+<li>Ej1.: calcular la edad de los encuestados a partir del año de
+nacimiento</li>
+</ul>
+<pre class="r"><code>datos &lt;- datos %&gt;% 
+  mutate(edad = año_actual - año_nacimiento)</code></pre>
+<ul>
+<li>Ej2.: crear una varieble para el porcentaje de voto de un partido a
+partir de los votos totales:</li>
+</ul>
+<pre class="r"><code>datos &lt;- datos %&gt;% 
+  mutate(votosFO_porcentaje = votos_FO/votostotales*100)</code></pre>
 <p><br></p>
 <p><strong>Recodificar con el comando case_when</strong></p>
 <pre class="r"><code>Datos &lt;- Datos %&gt;%
@@ -1475,8 +1476,57 @@ igual de buena en estos casos</em></p>
 la hora de recodificar variables</li>
 </ul>
 <pre class="r"><code>datos&lt;-datos %&gt;%
-  mutate(recuerdo19 = ifelse(recuerdo19 &gt;= 9977, NA, recuerdo19))</code></pre>
+  mutate(municipio_cat=ifelse(población&gt;=20000,&quot;Ciudad&quot;,&quot;Pueblo&quot;) %&gt;% 
+           as.factor())</code></pre>
+<ul>
+<li>También se pueden realizar operaciones entre variables al mismo
+tiempo que se recodifican. Ej.: calcular el apoyo en cada municipio a
+los partidos principales:</li>
+</ul>
+<pre class="r"><code>elec23 &lt;- elec23 %&gt;% 
+  mutate(apoyo = case_when(
+    CA==&quot;Galicia&quot; ~ PP+BNG+PSOE+SUMAR+VOX,
+    CA==&quot;Cataluña&quot; ~ PP+PSOE+SUMAR+VOX+JxCAT+ERC,
+    CA==&quot;País Vasco&quot; ~ PP+PSOE+SUMAR+VOX+PNV+BILDU,
+    T ~ PP+PSOE+SUMAR+VOX),
+  apoyo=apoyo/Votantes*100)</code></pre>
+<p><br></p>
+<div id="otras-opciones-de-mutate" class="section level4">
+<h4>Otras opciones de mutate</h4>
+<ol style="list-style-type: decimal">
+<li><p><code>mutate_if</code>. Se hacen cambios en múltiples variables
+que cumplan con una característica especificada. Es especialmente útil
+para transformar variables de un tipo a otro. Por ejemplo:</p>
+<ul>
+<li>Convertir todas las variables de tipo factor a carácter:
+<code>mutate_if(is.factor, as.character)</code></li>
+<li>Estandardizar (=0, sd=1) todas las variables numéricas del dataset:
+<code>mutate_if(is.numeric, scale)</code></li>
+<li>Cuando se estandariza, el valor 0 de una observación implica que
+esta se corresponde a la media, y el 1 que esa observación está un punto
+por encima de la desviación típica.</li>
+</ul></li>
+<li><p><code>mutate_at</code>. Cambia diferentes varaibles especificadas
+en un vector específico.</p>
+<ul>
+<li>Estandarizar una variable:
+<code>mutate_at (c(&quot;n&quot;, &quot;edad&quot;), scale)</code></li>
+<li>Convertir una escala en logarítmica:
+<code>mutate_at (c(“pib&quot;, “poblacion&quot;), log)</code></li>
+</ul></li>
+<li><p><code>mutate_all</code>. Permite hacer cambios en todas las
+variables de un dataframe. Ej.:
+<code>mutate_all(as.character)</code></p></li>
+<li><p><code>across</code>. Permite hacer cambios a varias variables a
+la vez dentro de la función básica de mutate. Ejs.:</p>
+<ul>
+<li><code>mutate(across(c(n, edad), round))</code></li>
+<li><code>mutate(across(where(is.numeric), round))</code></li>
+<li><code>mutate(across(starts_with(“nombr&quot;), tolower))</code></li>
+</ul></li>
+</ol>
 <hr />
+</div>
 </div>
 <div id="añadir-etiquetas-a-la-variable" class="section level3">
 <h3>3. Añadir etiquetas a la variable</h3>
@@ -2517,7 +2567,7 @@ espacial).</li>
 <pre class="r"><code>p_load(car)
 durbinWatsonTest(reg.lineal)</code></pre>
 <pre><code>##  lag Autocorrelation D-W Statistic p-value
-##    1        0.151464      1.682134   0.106
+##    1        0.151464      1.682134    0.09
 ##  Alternative hypothesis: rho != 0</code></pre>
 <p>p-value&gt;0.5. No podemos rechazar la Ho, lo que indica que los
 errores no están autocorrelacionados (lo que queremos).</p>

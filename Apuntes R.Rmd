@@ -36,6 +36,8 @@ source("00_datos/source.R")
 ![Ventanas de R Studio](01_img/ventanas_rstudio.png)
 </center>
 
+<br>
+
 - Editor de código: ficheros donde se escribe el código. Elemento clave para la reproducibilidad.
 - Consola: muestra los resultados del código ejecutado y permite ejecutar código de forma rápida (poco recomendable excepto para pruebas y mirar cosas muy concretas y rápidas) 
 - Ventana de ambiente: muestra los objetos almacenados
@@ -66,8 +68,9 @@ IMPORTANTE: las librerías deben abrise siempre que se usen (no con cada comando
 
 1. Instalar la librería pacman.
 2. Abrir la librería.
-3. Cuando se vaya a abrir una nueva librería, en lugar de usar el comando `library("nombre_librería")` se usa `p_load("nombre_librería")`
+3. Cuando se vaya a abrir una nueva librería, en lugar de usar el comando `library(nombre_librería)` se usa `p_load(nombre_librería)`
     - La ventaja de este comando es que, en caso de que no esté instalada la librería, se descargará y abrirá directamenta.
+    - Además, con el comando p_load se pueden abrir en un único comando varias librerías, lo que reduce la cantidad de espacio necesario para abrir las librerías: `p_load(librería_1, librería_2, librería_3...)`
 
 **Paquetes de GitHub**:
 
@@ -83,6 +86,7 @@ Al comenzar un nuevo trabajo en R, conviene crear un proyecto nuevo en el que se
 
 - Añadir un **pipe** (%>%): ctrl + shift + m
 - Añadir una almoadilla a la línea de código sobre la que se esté: ctrl + shift + c
+- Añadir la <- con sus espacios: alt + -
 
 **En RMarkdown**
 
@@ -121,13 +125,31 @@ Para escribir los códigos de R y que estos se puedan ejecutar, se debe añadir 
 
 Para ejecutar el códico que se escriba, se puede pulsar el triángulo verde de la esquina superior derecha (del chunk), la opción Run de la esquina de la pestaña del rmd, o usando Ctrl+Enter.
 
-Dentro de los chunks, se pueden establecer diferentes opciones para que no se muestre el código en el documento final pero se ejecute igualmente, no se muestren los errores... Estos ajustes se puedes escribir como comandos dentro de {r} o en la rueda de opciones que aparece a la derecha de cada chunk.
+Dentro de los chunks, se pueden establecer diferentes opciones para que no se muestre el código en el documento final pero se ejecute igualmente, no se muestren los errores... Estos ajustes se puedes escribir como comandos dentro de {r} o en la rueda de opciones que aparece a la derecha de cada chunk. Algunas de estas opciones son:
+
+- include: incluir los contenidos del chunk en el output
+- message: mensajes de la consola
+- warning: avisos de la consola
+- echo: muestra el código
+- eval: muestra el resultado del código (tabla, gráfico, etc.)
+- …
+
+Si se quiere que alguna de estas opciones se aplique a todos los chunks del documento, en lugar de tener que especificarlas en cada nuevo bloque de código se pueden escribir una única vez al princicipio del documento del siguiente modo:
+
+```r
+knitr::opts_chunk$set(warning = FALSE, # En caso de mensajes de alerta
+                      message = FALSE, # Otro tipo de mensajes
+                      echo = TRUE, # Mostrar el código
+                      results = TRUE) # Mostrar los resultados del código
+```
+
+Asimismo, los diferentes chunks del documento se les pueden dar nombres del siguiente modo: {r nombre chunk}
 
 Los chunks de R además permiten ejecutar todo el contenido de los chunks empleados con anterioridad, lo que puede resultar muy útil en el casdo de cometer errores que nedesitar resetear todo el trabajo realizado hasta el momento. Para ello, se debe seleccrionar la segunda opción que aparece en la esquina superior derecha del chunk (entre la rueda y el triángulo verde).
 
 **Encabezados**
 
-Sirven para delimitar los diferentes apartados y subapartados de los documentos. Se crean con las # (en una nueva línea se escribiría: # Encabezado de nivel 1). El espacio entre la almohadilla y el texto es imprescindible. Si en lugar de escribir una única # se ponen 2, 3... o 6, se van creando subniveles de encabezados (un mayor número de almohadillas indica un nivel inferior de encabezado).
+Sirven para delimitar los diferentes apartados y subapartados de los documentos. Se crean con las # (en una nueva línea se escribiría: # Encabezado de nivel 1. El espacio entre la almohadilla y el texto es imprescindible. Si en lugar de escribir una única # se ponen 2, 3... o 6, se van creando subniveles de encabezados (un mayor número de almohadillas indica un nivel inferior de encabezado).
 
 **Espacio entre líneas**
 
@@ -156,6 +178,12 @@ Para las listas de puntos, se escriben al comienzo de la línea de código y seg
   - Elemento 2
 
 También se pueden hacer listas con números y letras: 1. 1)  A. i. etc. 
+
+**Citas**
+
+Se escribe el texto con un > al principio de la línea:
+
+> Ejemplo de una cita
 
 
 **Ecuaciones**
@@ -610,6 +638,34 @@ head(datos,10)
 ```
 ***
 ### 3. Modificar el fichero
+#### Filter: seleccionar casos (filas)
+Se usa el comando `filter`, del paquete dplyr (en tidyverse). Se establecen una serie de condiciones lógicas a partir de las cuales la función retendrá únicamente los casos (filas) que cumplen con dicha condición (*condiciones como ==, >, %in%*).
+
+Ej.: en una base de datos donde los casos son municipios, seleccionar solo aquellos pertenecientes a Murcia o Almería:
+
+```r
+datos_2prov <- datos %>% 
+  filter(Provincia=="Almería" | Provincia=="Murcia")
+  
+datos_2prov <- datos %>% 
+  filter(id_provincia %in% c(5,35))
+```
+
+*Al usar tanto este comando como el select, conviene guardar los cambios dentro de un nuevo objeto y dejar el dataset original sin modificar*
+
+<br>
+
+#### Select: seleccionar variables
+Se usa el comando `select`, del paquete dplyr. Esta función permite reducri el número de columnas, por lo que resulta de gran utilidad cuando tenemos datasets con muchas variables y solo vamos a trabajar con algunas de ellas.
+
+Seleccionar una columna: `select(datos, nombre_variable)`.
+
+Este comando permite seleccionar más de una variable a la vez: `select(datos, x1, x2, x3)`.
+
+Tambiéns se pueden eliminar una o varias variables que no se quieran en el dataset: `select(datos, -variable)`
+
+<br>
+
 #### Ordenar las variables
 
 **Variable numérica:**
@@ -628,41 +684,10 @@ head(datos,10)
 
 - Se usan los mismos comandos anteriores para ordenar por orden alfabético ascendente o descendente
 - Orden personalizado: `mutate(variable = fct_relevel(variable, c("categoría1", "cat2", "catn")))` Ej.:
-  ```r
-  mutate(partido = fct_relevel(party, c("PP", "PSOE", "VOX", "SUMAR", "Otros")))
-  ```
-<br>
 
-#### Seleccionar (y eliminar) variables
-Seleccionar una columna:
-```{r}
-select(Datos, age)
+```r
+mutate(partido = fct_relevel(party, c("PP", "PSOE", "VOX", "SUMAR", "Otros")))
 ```
-
-Seleccionar varias columnas: 
-```{r}
-select(Datos, name, sex, age)
-```
-
-
-Crear un nuevo data.frame con una selección de columnas. Esto es muy útil cuando tenemos datasets con muchas variables y queremos trabajar con algo más manejable:
-```{r}
-Nuevos_Datos <- select(Datos, name, sex, age) 
-head(Nuevos_Datos, 10)  # visualizamos el nuevo dataset
-```
-
-Tambiéns se pueden eliminar una o varias variables que no se quieran en el dataset:
-```{r}
-Nuevos_Datos2 <- select(Datos, -name) 
-head(Nuevos_Datos2, 10)
-```
-
-
-*Dataframe original, para comparar las diferencias:*
-```{r echo=FALSE}
-head(Datos, 10)
-```
-
 
 ***
 ## Edición de variables  {.tabset .tabset-fade .tabset-pills}
@@ -690,12 +715,25 @@ Datos<-Datos %>% rename(
 colnames(Datos)
 ```
 
+**Opción 3**:
+
+Se pueden renombrar las variables directamente al abrir la base de datos gracias al pipe:
+```r
+datos <- read_xlsx("dirección_datos-xlsx") %>% 
+  rename(nombre_nuevo = nombre_viejo,
+         nombre_nuevo = nombre_viejo,
+         ...)
+```
 
 ***
 ### 2. Recodificar una variable (o crear una nueva)
-*(Tanto `mutate` como `case_when` son comandos de la librería dplyr, que se incluye dentro del tidyverse)*
+Para poder recodificar y crear varaibles se usa el comando `mutate` (*de dplyr*). Este es de gran utilidad si se usa junto a comandos que permiten añadir condiciones lógicas como `ifelse` o `case_when`.
 
-Antes de recodificar una variable es necesario conocer cómo es la variable. Para ello:
+<br>
+
+**Pasos previos antes de recodificar una variable**
+
+Antes de recodificar una variable es necesario conocer cómo es la variable original. Para ello:
 
 1. Se mira de qué tipo es la varible (numérica -numeric/dbl- o factor) gracias al comando `class`:
 ```{r}
@@ -705,6 +743,24 @@ class(Datos$edad)
 ```{r}
 table(Datos$clase, useNA="ifany") #La opción useNA="ifany" es opcional, y se añade para que en la tabla se muestren también los valores perdidos.
 ```
+<br>
+
+**Crear una nueva variable a partir de operaciones sobre otras existentes**
+
+- Ej1.: calcular la edad de los encuestados a partir del año de nacimiento
+
+```r
+datos <- datos %>% 
+  mutate(edad = año_actual - año_nacimiento)
+```
+
+- Ej2.: crear una varieble para el porcentaje de voto de un partido a partir de los votos totales:
+
+```r
+datos <- datos %>% 
+  mutate(votosFO_porcentaje = votos_FO/votostotales*100)
+```
+
 <br>
 
 **Recodificar con el comando case_when**
@@ -792,12 +848,44 @@ datos <- datos %>%
 Otros **ejemplos** de recodificar variables:
 
 - Se pueden utilizar símbolos lógicos como el >,<,|,& etc a la hora de recodificar variables
+
 ```r
 datos<-datos %>%
-  mutate(recuerdo19 = ifelse(recuerdo19 >= 9977, NA, recuerdo19))
+  mutate(municipio_cat=ifelse(población>=20000,"Ciudad","Pueblo") %>% 
+           as.factor())
 ```
 
+- También se pueden realizar operaciones entre variables al mismo tiempo que se recodifican. Ej.: calcular el apoyo en cada municipio a los partidos principales:
 
+```r
+elec23 <- elec23 %>% 
+  mutate(apoyo = case_when(
+    CA=="Galicia" ~ PP+BNG+PSOE+SUMAR+VOX,
+    CA=="Cataluña" ~ PP+PSOE+SUMAR+VOX+JxCAT+ERC,
+    CA=="País Vasco" ~ PP+PSOE+SUMAR+VOX+PNV+BILDU,
+    T ~ PP+PSOE+SUMAR+VOX),
+  apoyo=apoyo/Votantes*100)
+```
+
+<br>
+
+#### Otras opciones de mutate
+
+1. `mutate_if`. Se hacen cambios en múltiples variables que cumplan con una característica especificada. Es especialmente útil para transformar variables de un tipo a otro. Por ejemplo:
+    - Convertir todas las variables de tipo factor a carácter: `mutate_if(is.factor, as.character)`
+    - Estandardizar (=0, sd=1) todas las variables numéricas del dataset: `mutate_if(is.numeric, scale)`
+    - Cuando se estandariza, el valor 0 de una observación implica que esta se corresponde a la media, y el 1 que esa observación está un punto por encima de la desviación típica.
+  
+2. `mutate_at`. Cambia diferentes varaibles especificadas en un vector específico.
+    - Estandarizar una variable: `mutate_at (c("n", "edad"), scale)`
+    - Convertir una escala en logarítmica: `mutate_at (c(“pib", “poblacion"), log)`
+
+3. `mutate_all`. Permite hacer cambios en todas las variables de un dataframe. Ej.: `mutate_all(as.character)`
+
+4. `across`. Permite hacer cambios a varias variables a la vez dentro de la función básica de mutate. Ejs.:
+    - `mutate(across(c(n, edad), round))`
+    - `mutate(across(where(is.numeric), round))`
+    - `mutate(across(starts_with(“nombr"), tolower))`
 
 ***
 ### 3. Añadir etiquetas a la variable
