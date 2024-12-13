@@ -18,6 +18,8 @@ Vamos a centrarnos en el análisis de regresión logística, una técnica para e
 
 -   etc
 
+Análisis de variables dependientes categóricas con dos categorías (**dicotómicas**), o más (**polinómicas**). Sirve para modelar la probabilidad de ocurrencia de un evento como función de otros factores, y responder preguntas como:
+
 El análisis de regresión logística pertenece al grupo de *Modelos Lineales Generalizados* (GLM por sus siglas en inglés), y usa como función de enlace la función *logit*.
 
 ## Regresión logística vs regresión lineal
@@ -160,7 +162,7 @@ Como se puede observar, esta interpretación de los coeficientes es muy poco int
 
 ## Odds ratio
 
-El *odds ratio*, o razón de probabilidades se calcula como e^*coef*^ y es la frecuencia de ocurrencia de un suceso sobre la frecuencia de su no ocurrencia:
+Con el *odds* *ratio* lo que hago es exponenciar el coeficiente, osea e exponencial de Beta: $e^{\text{coef}}$ y es la frecuencia de ocurrencia de un suceso sobre la frecuencia de su no ocurrencia:
 
 -   Odds ratio \>1: la variable tiene un efecto positivo sobre la probabilidad de ocurrencia del suceso.
 
@@ -174,6 +176,8 @@ En la tabla:
 
     -   (1,337 - 1)\* 100 = 0,337 \* 100 = 33,7%
 
+    Sale 1,33, el cual es el mismo valor del coeficiente solo que ahora lo calcula las betas elevadas a $e$ para desahacer el logaritmo neperiano.
+
 -   Odds ratio~votó PP(2019)~= e^0.478263^=1,61. La probabilidad de votar a VOX (sobre votar a otro partido) es 1,61 veces mayor entre las personas que en 2019 votaron al PP que entre las personas que en 2019 votaron al PSOE (cuando el resto de variables permanecen constantes). O si se quiere expresar en porcentaje.
 
     -   (1,61 - 1)\* 100 = 0,61 \* 100 = 61%
@@ -182,7 +186,7 @@ En la tabla:
 
     -   (1 - 0.259)\* 100 = 0.741 \* 100 = 74%
 
-Para obtener los coeficientes exponenciados usamos la función `exp()`:
+Para obtener los coeficientes exponenciados usamos la función `exp()`: Con este código le estoy pidiendo los odds ratio porque le estoy pidiendo el exponente de los coeficientes de la regresión logística.
 
 ```{r}
 exp(coef(m.vox))
@@ -194,11 +198,17 @@ Para ponerlo todo en una tabla, usamos la función `cbind` (*column bind*), que 
 exp(cbind(OR = coef(m.vox), confint(m.vox)))
 ```
 
+**Comparar coeficientes**
+
 Los odds ratio se pueden comparar entre sí para saber qué variable es más explicativa o está asociada de manera más fuerte con la VD. Pero OJO! Para comparar un odds ratio mayor que uno (relación positiva) con un odds ratio menor que uno (relación negativa), es necesario calcular el valor inverso de uno de los datos porque el rango es distinto. Por ejemplo:
 
 -   ecoesp: 1/0,259=3,86
 
-La inversión de variables también resulta útil en el caso de las variables dicotómicas para comprobar el supuesto contrario al establecido. Por ejemplo, la probabilidad de las mujeres (en lugar del de los hombres) es de 1/2,13=0,47.
+Cuando hacemos esto para poder comparar debemos tener en cuenta que este coeficiente es para la variable de referencia. En este caso 3,86 es para la economíanegativa, porque estamos dandole la vuelta al numerador y denominador.
+
+La inversión de variables también es útil en el caso de las variables dicotómicas para comprobar el supuesto contrario al establecido. Por ejemplo, la probabilidad de las mujeres (en lugar del de los hombres) es de 1/2,13=0,47.
+
+Se puede hacer para cualquier tipo de variable, en el caso de la categóricas se invierte a su variable de referencias, y en el caso de las de escala (como la variable ideologia) lo entendemos como el aumento de una unidad.
 
 ## Probabilidades predichas
 
@@ -209,6 +219,8 @@ data1 <- with(datos_log, data.frame(ideol = mean(ideol), recuerdo19 = c("PSOE","
 
 head(data1, 8)
 ```
+
+Este código lo hace con la media de ideología en la muestra es vez de con ideología = 5, para todos los recuerdos de voto, que esté en la media de edad de la muestra, que sea hombre, con estudios y con una opinión negativa para la economía.
 
 Es importante que las variables en este *data.frame* tengan el mismo nombre que las variables en la regresión logística anterior. Una vez creado el *data.frame*, ya podemos pedirle a R que calcule las probabilidades predichas.
 
@@ -264,7 +276,19 @@ ggplot(data_to_plot, aes(x = AME, y = factor)) +
 
 Interpretación: Cuando se dice que un efecto marginal es 0.3882, significa que haber votado a VOX en 2010 está asociado con un aumento promedio de 0.17 unidades en la variable dependiente. En el contexto de una probabilidad o un porcentaje, como suele ser el caso en la regresión logística o modelos similares, un efecto marginal de 0.3882 corresponde a un aumento del 38,82 puntos porcentuales.
 
+Para hacer un modelo robusto puedes elegir poner las variables con sus valores que conformarían el escenario mas adverso. El escenario que más desfavorece la hipótesis planteada.
+
 Para más información sobre opciones del paquete margins podéis consultar [aquí](https://www.rdocumentation.org/packages/margins/versions/0.3.23) y [aquí](https://cran.r-project.org/web/packages/margins/vignettes/Introduction.html).
+
+**Resumen**
+
+La primera transformación es pasar el logaritmo al otro lado, es decir $e^{\text{coef}}$ –\> los odds ratios, porque al otro lado del igual queda $(\frac{p(x)}{1 - p(x)})$ , es decir la probabilidad del que el evento suceda partido de la probabilidad de que no suceda.
+
+La última tranfomación de la ecuación nos deja despejado $p(x)$, de esta manera podemos hacer probabilidades predichas de x sustituyendo los betas y las x (como hacías valores predichos en lm). Como la distribución de la muestra no es lineal los efectos de x no son iguales a lo largo de todo y, de esta manera podemos calcular casos específicos de y. Podemos conocer a lo largo de la regresión la probabilidad de y para cada x seleccionada por nosotros.
+
+Por último podemos carcular los *Average* *Marginal* *Effects* (*margins* en Stata). El efecto marginal no es la probabilidad de ocurrencia de x, sino el fecto de la VI sobre la probabilidad de ocurrencia de x. Es la manera de conseguir el equivalente a los coeficientes de la regresión lineal porque calcual todas las y para ciertos valores de x y luego hace el promedio de esos impactos de la x. En el caso de lineales no hace falta tranformar nada porque la media del efectos de una VI sobre todos los valores de y es igual a el efecto de de VI sobre un solo valor de y porque es un efecto estable a lo largo de toda la regresión.
+
+AME se usa principalmente cuando tienes un interés particular por el efecto de una VI.
 
 ## Diagnóstico
 
@@ -303,7 +327,7 @@ stargazer(m.vox,
 
 ## Validación del modelos de clasificaicón
 
-A continuación, vamos examinar cómo de bueno/malo es nuestro modelo a la hora de clasificar datos nuevos. Para ello, continuamos con el ejemplo anterior, en el que estimábamos la probabilidad de que un individiuo vote a un determinado partido.
+A continuación, vamos examinar cómo de bueno/malo es nuestro modelo a la hora de clasificar datos nuevos. Para ello, continuamos con el ejemplo anterior, en el que estimábamos la probabilidad de que un individiuo vote a un determinado partido. Se llama clasficación porque estoy intentado clasificar a los individuos en función de los valores de la VD, que en este caso es 0 y 1.
 
 En primer lugar, creamos el conjunto de entrenamiento (60%) y test (40%). Como hay pocos 1 en la muestra (de la var dependiente), se amplia el % de casos destinados al test para evitar que dentro de este la proporción de 1 sea demasiado bajo como para comprobar el modelo.
 
@@ -315,6 +339,8 @@ porc_test <- 0.40
 test.data <- datos_log %>% sample_frac(porc_test)  
 train.data <- datos_log %>% anti_join(test.data)
 ```
+
+En primer lugar, creamos el conjunto de entrenamiento (60%) y test (40%). Ha cambiado los porcentajes porque hay pocos 1 de la variable dependiente que es dicotómica, y así puede coger más unos. Se saca una muestra aleatoria y por eso ponermos el seed, para que nos escoja los mismos datos aleatorios y sea replicable. Llama clase real a lo que antes era la parte de test de la VD en las predicciones de lm.
 
 Creamos la variable **clase_real**, que corresponde a la variable dependiente (intentación voto a VOX) en el conjunto de test. Es la variable que luego comparemos con los valores estimados para ver nuestro nivel de acierto/error:
 
@@ -383,7 +409,9 @@ par(mfrow = c(1,1))
 plot(perf_logit, lty=1, col="darkgrey", main = "Logit ROC Curve")
 ```
 
-Y a continuación, calculamos el area bajo la curva (AUC). El AUC (Área Bajo la Curva) es una métrica que mide el desempeño de un modelo de clasificación binaria. Un valor de AUC:
+Esto se interpreta en función del area que hay debajo de la línea, lo ideal es que el area sea 1 (100%) es decir, que todo lo ha clasificado bien.
+
+Calculamos el area bajo la curva (AUC). El AUC (Área Bajo la Curva) es una métrica que mide el desempeño de un modelo de clasificación binaria. Un valor de AUC:
 
 -   1.0: El modelo clasifica perfectamente todas las instancias
 
@@ -428,6 +456,8 @@ rf.vox <- randomForest(
 importance(rf.vox) 
 ```
 
+Le indicamos que haga 500 arboles; mtry es el número de predictores seecionados aleatoriamente. Importance indica que en los 500 arboles que variables han tenido más peso de manera sistemática en todos los modelos. Este valor no lo puedes interpretar pero te hace un ranking, cuanto más altos mejor (Accuracy y Gini). En vez de conocer la significatividad estadística tienemos la importancia de las variables en el modelo. El random forest va apartando poco a pode preditores que no sean relevantes para el modelo, según va haciendo los modelos de manera altearia.
+
 Cuanto mayor es el número dentro del Accuracy, más relevante es esa variable dentro de la predicción. Que una variable sea más importante que otra no implica que sea mejor, ya que al no tener ninguna medida como el p-valor no se puede saber si la variable es significativa o no. Por tanto, que una variable sea más importante no la hace relevante en sí.
 
 En este modelo el type se llama "prob" y luego si entre corchetes se pone \[1\] clasifica sobre los 0 y \[,2\] quiere decir que clasifica sobre los 1.
@@ -457,7 +487,7 @@ En este caso, AUC es de 88,7%. Esto indica que en el 87% de los casos, el modelo
 
 ### Modelo de clasificación Naive Bayes
 
-Repetimos el proceso con el algoritmo [Naive Bayes](https://www.r-bloggers.com/2021/04/naive-bayes-classification-in-r/)
+Repetimos el proceso con el algoritmo [Naive Bayes](https://www.r-bloggers.com/2021/04/naive-bayes-classification-in-r/) (misma filosofía que un modelo bayesiano pero no lo es, es otro modelo de clasificación).
 
 ```{r}
 library(e1071)  
