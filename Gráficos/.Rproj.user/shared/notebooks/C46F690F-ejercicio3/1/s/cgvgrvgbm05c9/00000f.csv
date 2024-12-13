@@ -1,0 +1,6 @@
+"0","territorial_p <- datos %>% "
+"0","  summarise(PSOE= mean(psoe_territorial, na.rm=TRUE),"
+"0","            PP= mean(pp_territorial, na.rm=TRUE),"
+"0","            UP= mean(up_territorial, na.rm=TRUE),"
+"0","            Vox= mean(vox_territorial, na.rm=TRUE)) %>% "
+"0","    mutate(Tema=""territorial"")"

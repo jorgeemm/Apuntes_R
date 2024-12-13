@@ -1,0 +1,165 @@
+---
+title: "Análisis de correlación"
+---
+
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,
+                      fig.align = 'center', # Para que los gráficos de los comandos estén centrados en la página
+                      out.width = '60%') # Para modificar el tamaño de los gráficos (en este caso hacerlos algo más pequeños)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(pacman)
+source("00_datos/source.R")
+```
+
+## 1. En R
+
+Los análisis de correlación buscan averiguar si existe relación entre dos variables continuas.
+
+### **Covarianza:**
+
+``` r
+cov(datos$var1, datos$var2)
+```
+
+Ej. Se quiere comprobar la relación entre en índice de corrupción de un país (*cpi*, donde 0=más corrupto; 10=menos corrupto) y el índice de desarrollo humano (*hdi*, donde 0=más bajo; 1=más alto).
+
+```{r message=FALSE, warning=FALSE}
+cov(data$cpi, data$hdi)
+```
+
+### **Correlación de Pearson:**
+
+La función para calcular la correlación es `cor()` *(funciona igual que el comando cov)*. Sin embargo, para poder interpretar más adecuadamente los resultados de la correlación conviene realizar un test para comprobar si dicha correlación es estadísticamente significativa. Las hipótesis de este test son:
+
+-   H~0~= la correlación es igual a 0, así que no hay relación
+-   H~1~= la correlación es significativamente distinta de 0
+
+``` r
+cor.test(datos$var1, datos$var2)
+```
+
+Ej.:
+
+```{r}
+cor(data$cpi, data$hdi) # devuelve el valor de la correlación
+cor.test(data$cpi, data$hdi) # hace un test
+```
+
+Los resultados muestran que la correlación entre ambas variables tiene un valor de 0,72. El test arroja tres resultados:
+
+-   t=13,186 --\> t\>3,26
+-   p\<2.2e-16 --\> p\<0,001
+-   IC= \[0.6406049, 0.7902298\]
+
+Basándonos en estos resultados, podemos rechazar la hipótesis nula y afirmar que la correlación es significativamente distinta de cero para un nivel de confianza del 99,9%
+
+### **Correlación de más de dos variables a la vez:**
+
+```{r include=FALSE}
+#Para estos ejemplos se usa la base de datos mtcars, que viene incluída con R.
+attach(mtcars)
+Data <- mtcars
+```
+
+1.  Correlación entre todas las variables del dataset. Es fundamental que sean TODAS numéricas.
+
+```{r}
+cor(Data)
+```
+
+2.  Si solo se quiere la relación entre varias variables concretas, se puede hacer de forma manual del siguiente modo:
+
+```{r}
+x <- Data[c(1:3, 5)]
+y <- Data[6:8]
+cor(x, y)
+```
+
+### **Visualización de correlaciones:**
+
+Además de usar funciones de cálculo, suele ser de gran ayuda visualizar las correlaciones entre variables gráficamente.
+
+-   Nube de puntos (dos variables):
+
+```{r}
+plot(data$cpi, data$hdi, #Los datos que se van a usar para hacer el gráfico
+     main = "CPI/HDI", #El título del gráfico
+     xlab = "Corruption perception index", #El texto del eje X
+     ylab = "Human development index", #El texto del eje Y
+     pch = 18) #Establece la forma de los puntos (triángulos, círculos, x...)
+```
+
+-   Correlaciones para más de dos variables a la vez:
+
+``` r
+library(corrgram)
+corrgram(datos)
+```
+
+Ej.:
+
+```{r include=FALSE}
+library(corrgram)
+```
+
+```{r}
+corrgram(Data)
+```
+
+*El comando cuenta con numerosas argumentos extra para modificar y mejorar la visualización del gráfico final (ver ?corrgram). P. ej.:*
+
+```{r}
+corrgram(Data, order=TRUE, lower.panel=NULL,
+         upper.panel=panel.pie, text.panel=panel.txt,
+         main="Car Milage Data in PC2/PC1 Order")
+```
+
+------------------------------------------------------------------------
+
+## 2. Teoría
+
+Si queremos analizar la dependencia entre dos **variables continuas** XX e YY, no podemos estudiar sus distribuciones por separado, sino que debemos hacerlo de manera conjunta. Para ello, definimos una variable estadística bidimensional (X,Y)(X,Y), cuyos valores serán todos los pares formados por los valores de las variables XX e YY.
+
+La representación gráfica más utilizada para examinar la relación entre dos variables numéricas es el diagrama de dispersión. Este consiste en representar, sobre un plano cartesiano, los puntos correspondientes a los pares de valores ($x_{i}$, $y_{i}$) de la variable bidimensional. Estas nubes de puntos nos permiten visualizar el tipo de relación existente entre las variables (lineal, exponencial, positiva, negativa, etc.). Si además queremos cuantificar la intensidad de dicha relación, es necesario recurrir a medidas estadísticas, como la covarianza muestral o el coeficiente de correlación.
+
+La **covarianza** de una variable bidimensional se obtiene promediando los productos de las desviaciones de cada valor con respecto a las medias de XX e YY. Una vez calculadas las medias, podemos calcular la covarianza siguiendo la siguiente fórmula:
+
+$$cov_{x,y} = \frac{\sum\limits_{i=1}^{n}{(x_i-\overline{x}) \cdot (y_i-\overline{y})} }{n-1}$$
+
+El valor de la covarianza nos indica lo siguiente:
+
+-   Si cov\>0, relación lineal creciente entre las variables
+-   Si cov\<0, relación lineal decreciente entre las variables
+-   Si cov=0, no existe relación lineal entre las variables
+
+El problema de esta medida es que depende de las unidades. Imaginemos que las unidades de la variable x son *cm* y las de la variable y son *gr*. En este caso, las unidades de la covarianza serán *cm × gr*, y si cambiamos la escala de las variables, la covarianza también cambiará. Esto hace que el valor de la covarianza sea difícil de interpretar. (la variazna es la distancia de los puntos hacia los ejes. La covarianza es la distancia de los puntos entre sí)
+
+Para evitar este problema, es recomendable utilizar una medida normalizada, como el coeficiente de **correlación de Pearson**, que toma valores entre -1 y 1, donde:
+
+-   ρ = 1 indica una relación lineal perfecta y positiva
+-   ρ = -1 indica una relación lineal perfecta y negativa
+-   ρ = 0 indica ausencia de relación entre las variables
+
+$$\rho = \frac{\text{cov}(X,Y)}{\sigma_x \sigma_y}$$
+
+**Correlación no implica causalidad**
+
+La correlación entre dos variables v1 y v2 puede deberse a:
+
+-   Relación causal: V1 es la causa, V2 el efecto (o viceversa)
+-   Azar
+-   Variable interviniente (confounding factor):
+    -   [Relaciones espúreas](http://www.tylervigen.com/spurious-correlations): es una correlación aparente entre dos variables que en realidad es causada por la influencia de una tercera variable, conocida como variable de confusión. Aunque las dos variables parecen estar relacionadas, su relación no es causal.
+    -   [Paradoja de Simpson](https://upload.wikimedia.org/wikipedia/commons/f/fb/Simpsons_paradox_-_animation.gif): ocurre cuando una tendencia observada en varios grupos desaparece o se invierte al combinar los datos de esos grupos. Esto sucede debido a la influencia de una variable oculta o de confusión que afecta la interpretación de la relación entre las variables. Aquí tenéis un [ejemplo muy conocido](https://rpubs.com/dawnwp/1081716).
+
+------------------------------------------------------------------------

@@ -1,0 +1,6 @@
+"0","inmigracion_p <- datos %>% "
+"0","  summarise(PSOE=mean(psoe_inmigracion, na.rm=T),"
+"0","            UP=mean(up_inmigracion, na.rm=T),"
+"0","            PP=mean(pp_inmigracion, na.rm=T),"
+"0","            Vox=mean(vox_inmigracion, na.rm=T)) %>% "
+"0","    mutate(Tema=""inmigracion"")"

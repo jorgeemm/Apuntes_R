@@ -1,0 +1,8 @@
+- source: project
+  quarto-pub:
+    - id: 429d7399-96f3-4594-881c-83b91984ed8b
+      url: 'https://jorgemm.quarto.pub/gráficos'
+    - id: e6c274af-0693-40fe-b889-74f334c20d46
+      url: 'https://jorgemm.quarto.pub/gráficos'
+    - id: b1eb5608-bbe7-4d58-a0b8-c00fc5c59abd
+      url: 'https://jorgemm.quarto.pub/graficos'

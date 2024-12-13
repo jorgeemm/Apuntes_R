@@ -1,0 +1,2 @@
+"0","data1$probpredichas_vox<- predict(m.vox, newdata = data1, type = ""response"")"
+"0","data1[, c(2, 7)]  #le pido que muestre todas las filas de las columnas 2 (recuerdo voto) y 7(probabilidad predicha)"

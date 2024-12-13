@@ -1,0 +1,286 @@
+---
+title: "Edición de variables"
+---
+
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,
+                      fig.align = 'center', # Para que los gráficos de los comandos estén centrados en la página
+                      out.width = '60%') # Para modificar el tamaño de los gráficos (en este caso hacerlos algo más pequeños)
+```
+
+```{r include=FALSE}
+setwd("C:/Users/Lenovo/OneDrive/Escritorio/Apuntes_R")
+library(tidyverse)
+library(pacman)
+source("00_datos/source.R")
+```
+
+## 1. Renombrar una variable
+
+**Opción 1**:
+
+``` r
+Datos <- rename(Datos, nombre_nuevo = nombre_viejo)
+```
+
+**Opción 2**:
+
+``` r
+datos <- datos %>% rename(nombre_nuevo = nombre_viejo)
+```
+
+Se puede cambiar el nombre de varias variables a la vez:
+
+```{r}
+colnames(Datos)
+
+Datos<-Datos %>% rename(
+  clase=pclass,
+  nombre=name,
+  sexo=sex,
+  edad=age)
+```
+
+```{r}
+colnames(Datos)
+```
+
+**Opción 3**:
+
+Se pueden renombrar las variables directamente al abrir la base de datos gracias al pipe:
+
+``` r
+datos <- read_xlsx("dirección_datos-xlsx") %>% 
+  rename(nombre_nuevo = nombre_viejo,
+         nombre_nuevo = nombre_viejo,
+         ...)
+```
+
+------------------------------------------------------------------------
+
+## 2. Recodificar una variable (o crear una nueva)
+
+Para poder recodificar y crear varaibles se usa el comando `mutate` (*de dplyr*). Este es de gran utilidad si se usa junto a comandos que permiten añadir condiciones lógicas como `ifelse` o `case_when`.
+
+### **Pasos previos**
+
+Antes de recodificar una variable es necesario conocer cómo es la variable original. Para ello:
+
+1.  Se mira de qué tipo es la variable (numérica -numeric/dbl- o factor) gracias al comando `class`:
+
+```{r}
+class(Datos$edad)
+```
+
+2.  También conviene realizar una tabla para conocer el contenido de la variable, así como su distribución:
+
+```{r}
+table(Datos$clase, useNA="ifany") #La opción useNA="ifany" es opcional, y se añade para que en la tabla se muestren también los valores perdidos.
+```
+
+### **Crear una nueva variable a partir de operaciones sobre otras existentes**
+
+-   Ej1.: calcular la edad de los encuestados a partir del año de nacimiento
+
+``` r
+datos <- datos %>% 
+  mutate(edad = año_actual - año_nacimiento)
+```
+
+-   Ej2.: crear una variable para el porcentaje de voto de un partido a partir de los votos totales:
+
+``` r
+datos <- datos %>% 
+  mutate(votosFO_porcentaje = votos_FO/votostotales*100)
+```
+
+### **El comando case_when**
+
+``` r
+Datos <- Datos %>%
+  mutate(edad = case_when(
+    edad == 29 ~ 30, # reemplaza 29 por 30
+    edad == 2 ~ 3, # reemplaza 2 por 3
+    TRUE ~ edad)) # Mantiene iguales los valores que no cambian.
+```
+
+```{r}
+Datos <- Datos %>%
+  mutate(clase_rec = case_when(
+    clase %in% c(2, 3) ~ 0, # Si 'clase' es 2 o 3, asigna "0"
+    TRUE ~ clase)) 
+
+table(Datos$clase_rec)
+```
+
+La opción TRUE en este comando significa "todos los demás valores". Si no se añadiera, todos los valores que no coinciden con las condiciones se enviarían a perdidos (NA).
+
+### **El comando ifelse**
+
+El comando ifelse es una secuencia lógica con tres elementos. Un primer número, que es la categoría que se quiere transformar, un segundo número, que es en el que se transforma, y una tercera condición para el resto de valores. Esta puede ser otro número, NA o otra secuencia de ifelse.
+
+``` r
+Datos <- Datos %>%
+  mutate(edad = ifelse(edad == 29, 30, ifelse(edad == 2, 3, edad)))
+
+Datos <- Datos %>%
+  mutate(clase_rec2 = ifelse(clase == 1, 1,
+                             ifelse(clase %in% c(2, 3), 0, NA)))
+```
+
+### Variables categóricas
+
+Las **variables categóricas** se recodifidan del siguiente modo:
+
+1.  Transformándolas en una variable numérica:
+
+``` r
+#Por separado:
+Datos <- Datos %>% 
+  mutate(sexo = as.numeric(sexo)) %>% 
+  mutate(sexo = case_when(
+    sexo == 1 ~ 0,
+    sexo == 2 ~ 1,
+    TRUE ~ sexo
+  ))
+  
+#A la vez:
+Datos <- Datos %>% 
+  mutate(as.numeric(sexo) = case_when(
+    sexo == 1 ~ 0,
+    sexo == 2 ~ 1,
+    TRUE ~ sexo
+  ))
+```
+
+*Es la opción más útil si se quiere modificar una variable con muchas categorías*
+
+2.  Escribiendo las etiquetas entre "":
+
+``` r
+Datos <- Datos %>%
+  mutate(sexo = case_when(
+    sexo == "female" ~ "mujer",  
+    sexo == "male" ~ "hombre",   
+    TRUE ~ sexo                  
+  ))
+```
+
+*Esta opción es la más cómoda si la variable tiene pocas categorías.*
+
+3.  Especificando los niveles que se quieren modificar:
+
+``` r
+datos <- datos %>%
+  mutate(estudios_universitarios = case_when(
+    estudios %in% levels(estudios)[1:5] ~ 0,  # Agrupar niveles 1 a 5 en 0
+    estudios %in% levels(estudios)[6] ~ 1,    # Agrupar nivel 6 en 1 
+    TRUE ~ NA_real_                           
+  ))
+```
+
+*Esta opción es útil si se quiere convertir en cardiotónico una variable categórica con muchas categorías, aunque la primera opción es igual de buena en estos casos*
+
+### Ejemplos útiles
+
+Otros ejemplos de recodificar variables:
+
+-   Se pueden utilizar símbolos lógicos como el \>,\<,\|,& etc a la hora de recodificar variables
+
+``` r
+datos<-datos %>%
+  mutate(municipio_cat=ifelse(población>=20000,"Ciudad","Pueblo") %>% 
+           as.factor())
+```
+
+-   También se pueden realizar operaciones entre variables al mismo tiempo que se recodifican. Ej.: calcular el apoyo en cada municipio a los partidos principales:
+
+``` r
+elec23 <- elec23 %>% 
+  mutate(apoyo = case_when(
+    CA=="Galicia" ~ PP+BNG+PSOE+SUMAR+VOX,
+    CA=="Cataluña" ~ PP+PSOE+SUMAR+VOX+JxCAT+ERC,
+    CA=="País Vasco" ~ PP+PSOE+SUMAR+VOX+PNV+BILDU,
+    T ~ PP+PSOE+SUMAR+VOX),
+  apoyo=apoyo/Votantes*100)
+```
+
+### Otras opciones de mutate
+
+1.  `mutate_if`. Se hacen cambios en múltiples variables que cumplan con una característica especificada. Es especialmente útil para transformar variables de un tipo a otro. Por ejemplo:
+
+    -   Convertir todas las variables de tipo factor a carácter: `mutate_if(is.factor, as.character)`
+    -   Estandardizar (=0, sd=1) todas las variables numéricas del dataset: `mutate_if(is.numeric, scale)`
+    -   Cuando se estandariza, el valor 0 de una observación implica que esta se corresponde a la media, y el 1 que esa observación está un punto por encima de la desviación típica.
+
+2.  `mutate_at`. Cambia diferentes varaibles especificadas en un vector específico.
+
+    -   Estandarizar una variable: `mutate_at (c("n", "edad"), scale)`
+    -   Convertir una escala en logarítmica: `mutate_at (c(“pib", “poblacion"), log)`
+
+3.  `mutate_all`. Permite hacer cambios en todas las variables de un dataframe. Ej.: `mutate_all(as.character)`
+
+4.  `across`. Permite hacer cambios a varias variables a la vez dentro de la función básica de mutate. Ejs.:
+
+    -   `mutate(across(c(n, edad), round))`
+    -   `mutate(across(where(is.numeric), round))`
+    -   `mutate(across(starts_with(“nombr"), tolower))`
+
+------------------------------------------------------------------------
+
+## 3. Añadir etiquetas a la variable
+
+Ver las etiquetas de una variable: `attr(datos$var, "labels")`:
+
+**Para cambiar las etiquetas se usa el comando factor** *(de dyplr)*
+
+``` r
+datos <- datos %>% 
+  mutate(variable = factor(variable, 
+                    levels = c(1,2,3),
+                    labels = c("Etiqueta1","Etiqueta2","Eriqueta3")))
+```
+
+-   `levels` = c(1,2,3) indica el conjunto de números correspondientes con los valores de cada categoría de la variable.
+-   `labels` =c("Etiqueta1"...) indica las etiquetas correspondientes con cada valor especificado anteriormente. Por ejemplo, en este caso a la categoría de la variable que se identifica con un 1 se le asignaría la etiqueta "Etiqueta1".
+-   Ej. de cómo añadir etiquetas:
+
+```{r}
+table(datos$mujer)
+
+datos <- datos %>%
+  mutate(mujer = factor(mujer, levels = c(0, 1), labels = c("Hombre","Mujer"))) 
+
+table(datos$mujer)
+```
+
+Si se quiere etiquetar algún carácter de una variable numérica sin transformarla en factor, se puede usar el siguiente comando:
+
+``` r
+library(labelled)
+val_labels(datos$variable) <- c(Etiqueta1 = 0, Etiqueta2 = 1)
+```
+
+Este comando también es útil en el caso de escalas: por ejemplo, en la escala de ideología del 1 al 10 para poner que el 1 es extrema izquierda y el 10 extrema derecha, pero dejarlo como numérico y sin necesidad de etiquetar todas las categorías.
+
+```{r include=FALSE}
+library(labelled)
+```
+
+```{r}
+class(datos$ideol)
+
+val_labels(datos$ideol) <- c(Extrema_izq = 1, Extrema_dcha = 10)
+
+class(datos$ideol)
+val_labels(datos$ideol)
+```
+
+------------------------------------------------------------------------

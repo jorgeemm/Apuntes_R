@@ -1,0 +1,1 @@
+"0","datos_reg <- inner_join(clea_limpio, qog_limpio, by = c(""ccode"", ""year""))"

@@ -2002,6 +2002,190 @@ Diferencias más notables:
   *   Otra ventaja adicional es que AIC/BIC permiten comparar entre modelos que no están anidados. 
 
 ***
+### Validación del modelo
+#### Validación del modelo de regrasión
+Hay ocasiones en las que queremos determinar la precisión de un modelo a la hora de predecir nuevas observaciones (que no se han utilizado para construir el modelo). En otras palabras, queremos estimar el error de predicción de nuestro modelo. Con **validación cruzada** nos referimos a un conjunto de métodos para medir el rendimiento de un modelo dado en nuevos conjuntos de datos de prueba.
+
+La idea básica detrás de las técnicas de validación cruzada es la siguiente:
+
+- Construir el modelo en un conjunto de datos de entrenamiento (*train set*)
+- Aplicar el modelo en un nuevo conjunto de datos de prueba para hacer predicciones (*test set*)
+- Calcular los errores de predicción. Si el modelo funciona bien en el conjunto de datos de prueba (*test set*), entonces es bueno.
+
+Éxisten diferentes métricas para cuantificar la calidad general de los modelos de regresión. Hasta ahora nos hemos centrado en el R^2^, pero hay otros como:
+
+- El **error cuadrático medio** (RMSE), que mide el error predictivo promedio. Es decir, la diferencia promedio entre los valores observados y los valores predichos por el modelo. Cuanto más bajo sea el RMSE, mejor será el modelo.
+- El **error absoluto absoluto** (MAE), una alternativa a RMSE que es menos sensible a los valores atípicos. Corresponde a la diferencia promedio, en términos absolutos, entre los resultados observados y predichos. Cuanto más bajo sea el MAE, mejor será el modelo.
+
+Existen diferentes métodos de validación cruzada para evaluar el rendimiento del modelo. A continuación, vamos a ver algunos de los más sencillos y frecuentes.
+
+#### El conjunto de validación
+Él método más sencillo consiste en dividir aleatoriamente los datos en dos conjuntos: un conjunto se usa para entrenar el modelo (train set) y el otro para probalo (test set).
+
+Vamos a ver un ejemplo. Para ello, abrimos el dataset QoG2017 (*Quality of Government, 2017*) que ya conocemos. Como en ejemplos anteriores, renombramos nuestras 2 variables de interés:
+
+- ti_cpi (Transparency International Corruption Perception Index) = cpi
+- mad_gdppc (GDP per capita) = gdp
+
+```{r}
+qog2017 <- read_dta("00_datos/QoG_basic_2017.dta")
+
+dim(qog2017)
+
+qog2017 <- qog2017 %>%
+  mutate(cpi = ti_cpi,
+         gdp = mad_gdppc)
+
+summary(qog2017$cpi)
+
+summary(qog2017$gdp)
+
+```
+
+Para que todo funcione bien **es necesario que la base de datos no contenga NAs**. Para ello, procedemos de la siguiente manera:
+
+- Creamos un nuevo dataset que incluya únicamente las variables que nos interesan
+- Eliminamos los casos perdidos usando la función `na.omit()` o `na.exclude()`
+
+```{r}
+myvars <- c("cpi", "gdp")          # creo un vector con las variables de interés
+qog2017.red<-qog2017[myvars]       # creo un nuevo dataframe con las variables de interés
+qog2017.red<- na.omit(qog2017.red) # elimino los casos perdidos del nuevo dataframe
+summary(qog2017.red)               # compruebo que el nuevo dataset contiene únicamente las variables de interés
+dim(qog2017.red)
+```
+
+Una vez tenemos el dataset preparado, pasamos a crear el conjunto de entrenamiento y test. Hay otras muchas maneras de hacerlo y aquí hemos elegido una sencilla, pero hay otras funciones disponibles en el paquete *caret* o *caTools*.
+```{r}
+# Establecemos la semilla para la reproducibilidad (puede ser cualquier número)
+set.seed(1)
+
+# Creamos un id para las filas
+qog2017.red <- qog2017.red %>%
+  rownames_to_column(var = "row_id")
+
+# Dividimos el dataset en 70% para entrenamiento y 30% para prueba
+train.data <- qog2017.red %>%
+  sample_frac(0.7) # selecciona aleatoriamente el 70% de las filas del dataset.
+
+# El test set son las filas que no están en el train set
+test.data <- qog2017.red %>%
+  anti_join(train.data, by = "row_id") # se usa para obtener el 30% restante (las filas que no están en                                            el set de entrenamiento), asegurando que no haya filas duplicadas.
+```
+
+Nota: `set.seet()`establece el número inicial que se usa para generar una secuencia de números aleatorios. De esta manera, nos aseguramos de que obtener el mismo resultado cada vez que se ejecuta el mismo proceso.
+
+A continuación, estimamos el modelo de regresión con los datos de entrenamiento (train.data):
+
+```{r}
+modelo1 <- lm(cpi ~ gdp, data=train.data)
+print(modelo1)
+```
+
+Una vez hemos estimado el modelo en el conjunto de entrenamiento, pasamos a hacer la predicción. Es decir, usamos los parámetros obtenidos en el modelo1 para estimar yhat (valores predichos) en el conjunto de prueba (test.data):
+
+```{r}
+# Usamos el modelo para predecir los valores de CPI en test.data y guardamos el resultado en una nueva columna yhat1
+test.data <- test.data %>%
+  mutate(yhat1 = predict(modelo1, newdata = test.data))
+
+# Visualizamos los primeros valores de la columna de predicciones
+head(test.data$yhat1)
+```
+
+Como resultado, el dataset tiene ahora 4 columnas. El id, la variable dependiente (*cpi*), la variable independiente (*gdp*) y el valor predicho (*yhat*). Una vez tenemos estos tres valores, ya podemos calcular la calidad general del modelo de regresión.
+
+```{r}
+head(test.data)
+```
+
+Calculamos el R^2^, el RMSE y el MAE del modelo 1:
+```{r}
+library(caret)
+data.frame(R2.m1 = R2(test.data$yhat1, test.data$cpi),
+           RMSE.m1 = RMSE(test.data$yhat1, test.data$cpi),
+           MAE.m1 = MAE(test.data$yhat1, test.data$cpi))
+```
+
+RMSE y el MAE se miden en la misma escala que la variable dependiente. Para tener una medida más fácilmente interpretable, dividimos RMSE por el valor promedio de la variable dependiente. De esta manera obtendremos la *tasa de error de predicción* que varía entre 0 y 1. La predicción será mejor cuanto menor sea su valor:
+
+```{r}
+RMSE(test.data$yhat1, test.data$cpi)/mean(test.data$cpi)
+```
+
+Este método de validación cruzada es útil cuando tenemos una muestra suficientemente grande para particionar. Una desventaja es que construimos el modelo a partir de fracción del conjunto de datos, posiblemente omitiendo alguna información interesante sobre los datos, lo que nos puede conducir a un mayor sesgo. Por lo tanto, la tasa de error de la prueba puede ser muy variable, dependiendo de qué observaciones se incluyen en el conjunto de entrenamiento y qué observaciones se incluyen en el conjunto de validación.
+
+#### Método *Leave-one-out* (LOOCV)
+La validación cruzada dejando uno fuera o método *leave-one-out* funciona de la siguiente manera:
+
+- Dejar un único caso fuera y construye el modelo con el resto del dataset (n-1)
+- Valida el modelo con dicho dato, y guarda el error de predicción asociado
+- Repite el proceso tantas veces como casos (n) tenemos
+- Computa el error de predicción total, que es el promedio de todos los errores estimados en cada paso
+
+Para cada uno de los casos de la muestra, hace una regresión con todos los otros casos, y testea esta regresión con ese caso que se ha quedado apartado. Este proceso se repite con todos los casos, calculando el error de todas estas regresiones y calculando la media de ellos. Con esta forma de realizar predicciones, todos los casos son usados tanto en la muestra de entrenamiento como en la de testeo. (*No tiene por qué ser necesaariamente un mejor modelo que el anterior*)
+
+Vamos a ver un ejemplo con nuestros datos
+
+```{r}
+train.control <- trainControl(method="LOOCV") # Con la función trainControl definimos el tipo de método (loocv en este caso)
+# Entrenamos el modelo
+modelo2 <- train(cpi ~., data=qog2017.red, method="lm", trControl=train.control) # ~. significa que utilice todas las varaibles del dataset, en lugar de tener que escribirlas todas una por una.
+print(modelo2)
+```
+
+La función `print()` nos devuelve el resultado del modelo calculado con el método LOOCV. Como veis, nos devuelve el valor del RMSE, R^2^y MAE. Para facilitar la interpretación, volvemos a calcular la *tasa de error de predicción*. En primer lugar, tenemos que extraer el valor de RMSE de la lista de resultados del modelo (lo podéis consultar haciendo click sobre el modelo2):
+
+```{r}
+qog2017.red$RMSE.m2<-modelo2$results$RMSE
+head(qog2017.red)
+```
+
+Comos veis, el dataframe contiene ahora nueva columna RMSE.m2. Ya podemos dividir el RMSE por la media de la variable dependiente (cpi)
+
+```{r}
+mean(qog2017.red$RMSE.m2/mean(qog2017.red$cpi))
+```
+
+La ventaja del método LOOCV es que usamos todos los puntos de datos para reducir el sesgo potencial. La desventaja es que el proceso se repite tantas veces como casos hay, lo que tiene un coste computacional importante si la muestra es muy grande.
+
+#### K-fold *cross validation* 
+El método de validación cruzada de *k-fold* evalúa el rendimiento del modelo en diferentes subconjuntos de los datos de entrenamiento y luego calcula la tasa de error predictivo promedio. El proceso es el siguiente:
+
+- Dividir al azar el conjunto de datos en k-subconjuntos (k-folds)
+- Reservar un subconjunto y entrenar el modelo en todos los demás subconjuntos
+- Probar el modelo en el subconjunto reservado y registrar el error de predicción
+- Repetir este proceso hasta que cada uno de los k subconjuntos haya servido como conjunto de prueba.
+- Calcule el promedio de los errores registrados. Esto se llama el *error de validación* cruzada que sirve como la métrica de rendimiento para el modelo.
+
+La ventaja más obvia de este método, en comparación con LOOCV, es computacional. Una ventaja menos obvia, pero potencialmente más importante, es que a menudo proporciona estimaciones más precisas de la tasa de error de prueba que LOOCV (James et al., 2014).
+
+Pregunta clave: ¿cómo elegir el valor correcto de k? No es difícil ver que un valor pequeño de k (p.ej., k=2) nos lleva a un enfoque parecido al del conjunto de validación que vimos en primer lugar. Por el contrario, valores altos de k (p.ej., k=m) nos lleva al enfoque de LOOCV. En general, usaremos valores intermedios (5, 10, incluso 20)
+
+Vamos a hacer un ejemplo con k=10
+
+```{r}
+# Definimos el training control para 10 folders
+set.seed(123) 
+train.control <- trainControl(method="cv", number=10)  # en este caso, usamos el método "cv"
+# Entrenamos el modelo
+modelo3 <- train(cpi ~., data=qog2017.red, method="lm", trControl=train.control)
+print(modelo3)
+```
+
+Como en el ejemplo anterior, el modelo calculado a través de “cv” nos devuelve el RMSE, R^2^ y MAE. Al igual que hicimos arriba, extraemos el RMSE para calcular la tasa de error de predicción de la siguiente manera:
+
+```{r}
+qog2017.red$RMSE.m3<-modelo3$results$RMSE         # extraemos RMSE del modelo3
+head(qog2017.red)                                 # comprobamos que se ha añadido al data.frame
+```
+
+```{r}
+mean(qog2017.red$RMSE.m3/mean(qog2017.red$cpi))   # calculamos la tasa del error de predicción
+```
+
+
+
 ## Otras cosas
 
 - [Secuencias de números](#secuencia)

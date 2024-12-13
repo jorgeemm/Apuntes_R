@@ -1,0 +1,6 @@
+"0","raul_p <- datos %>% "
+"0","  summarise(PSOE=mean(psoe_lgtb, na.rm=T),"
+"0","            UP=mean(up_lgtb, na.rm=T),"
+"0","            PP=mean(pp_lgtb, na.rm=T),"
+"0","            Vox=mean(vox_lgtb, na.rm=T)) %>% "
+"0","    mutate(Tema=""lgtb"")"

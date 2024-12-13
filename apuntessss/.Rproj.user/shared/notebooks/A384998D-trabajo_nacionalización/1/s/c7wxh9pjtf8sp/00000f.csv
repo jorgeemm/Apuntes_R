@@ -1,0 +1,8 @@
+"0","qog_filtrado<- qog %>% "
+"0","  inner_join(clea, by = c(""ccode"" = ""ctr"", ""year"" = ""yr""))"
+"0",""
+"0","clea_filtrado <- clea %>% "
+"0","  distinct(ctr, yr, .keep_all = TRUE) %>%"
+"0","  inner_join(qog_filtrado %>% distinct(ccode, year, .keep_all = TRUE), "
+"0","             by = c(""ctr"" = ""ccode"", ""yr"" = ""year""))"
+"0",""

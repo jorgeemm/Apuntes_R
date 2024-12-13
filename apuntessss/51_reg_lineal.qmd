@@ -1,0 +1,267 @@
+---
+title: "Lineal simple"
+---
+
+```{r include=FALSE}
+source("00_datos/source.R")
+```
+
+## En R
+
+La regresión lineal se usa para predecir el valor de una variable **y** en función de una o más variables **x**. La variable dependiente debe ser numérica, y las independientes pueden ser tanto numéricas como categóricas. *En el ejemplo usado, se tratará de comprobar si el Índice de Corrupción de un país (y) depende del nivel de PIB de este (x).*
+
+### Resumen de las funciones principales
+
+``` r
+# Análisis preliminar:
+scatter.smooth(x=datos_reg$var1, y=datos_reg$var2) #Gráfico de dispersión
+boxplot(datos_reg$var1, sub=paste("Outlier rows:  ", boxplot.stats(datos_reg$var1)$out)) #Boxplot para buscar datos atípicos
+ggplot(datos_reg, aes(var1)) + geom_density(fill="red", alpha=0.8) #Diagrama de densidad (librería ggplot)
+
+# Función de la regresión
+regresión <- lm(var1~var2, datos_reg) #Librería e1071
+summary(regresión)
+
+# Comprobación de los supuestos principales
+plot(regresión,2) #Normalidad de los residuos
+bptest(regresión) #Homocedasticidad (librería lmtest)
+vif(regresión) #Multicolinealidad (librería rms)
+
+#Exportar los resultados
+stargazer(regresión, type="text") #Librería stargazer
+```
+
+### Análisis preliminar {#preliminar}
+
+Antes de estimar la regresión, es importante explorar y entender la variable dependiente (fenómeno que queremos explicar).
+
+1.  **Gráfico de dispersión**: permite visualizar la relación lineal entre la variable independiente y la dependiente. (Es una línea de tendencia, no un gráfico de dispersión, por eso la línea no es recta)
+
+```{r}
+scatter.smooth(x=datos_reg$gdp, y=datos_reg$cpi, main="GDP ~ CPI", xlab="GDP", ylab="CPI")
+```
+
+2.  **Boxplot**: permite detectar la presencia de observaciones atípicas (outliers). Los valores atípicos pueden afectar a la predicción, modificando la dirección/pendiente de la recta de regresión.
+
+```{r}
+boxplot(datos_reg$gdp, main="GDP", sub=paste("Outlier rows:  ", boxplot.stats(datos_reg$gdp)$out)) 
+```
+
+-   Si se quiere comprobar con qué caso se corresponden los valores atípicos detectados se puede usar el siguiente comando:
+
+```{r}
+# Seleccionamos el nombre del país cuyo GDP es igual a 30491.34375
+outlier_gdp <- datos_reg %>%
+  filter(gdp == 30491.34375) %>% 
+  pull(cname)
+table(outlier_gdp)
+```
+
+3.  **Diagrama de densidad**: para ver la distribución de la variable. Idealmente, la distribución ha de ser cercana a la normal. Si esto no ocurre, será necesario realizar alguna transformación en los datos empleados.
+
+```{r warning=FALSE}
+ggplot(datos_reg, aes(cpi)) + geom_density(fill="red", alpha=0.8)
+```
+
+### El modelo de regresión {#modelo}
+
+La función utilizada para construir modelos lineales es `lm()` del paquete `e1071`, que toma dos argumentos principales: `lm(var_dependiente ~ var_independiente, datos)`
+
+```{r}
+library(e1071)
+reg.lineal <- lm(cpi~gdp, data=datos_reg) #El argumento "data=" se puede omitir, basta con poner la base de datos. Es decir, se puede escribir directamente: lm(cpi~gdp, datos_reg)
+reg.lineal #Conviene guardar las regresiones dentro de un objeto, ya que de otra forma no se podrían realizar los pasos posteriores.
+```
+
+### Resultados de la regresión {#resultados}
+
+Para evaluar los resultados, imprimimos las estadísticas de resumen para el modelo:
+
+```{r}
+summary(reg.lineal)
+```
+
+-   Los **coeficientes** indican la contribución de cada variable independiente al modelo de regresión.
+    -   **Intercept**(β~0~). Establece el valor de la variable y cuando la varible x es 0 (el punto donde la recta de regresión corta la ordenada en el orígen). En el *ejemplo*, el intercepto (β0)= 24.237, lo que significa que, para un país con GDP=0, el valor de su cpi sería 24.237.
+    -   El *coeficiente* de la variable independiente: establece el incremento promedio que experimentará la variable dependiente (y) por cada unidad que se incremetne la variable independiente (x). En el ejemplo, el coeficiente del gdp (β1)=0.002163, lo que significa que por cada incremento de un dolar en el gdp de un país, el cpi aumenta en 0.002163 puntos.
+-   La evaluación de la **significatividad** de los coeficientes (βi) comienza con la definición de hipótesis sobre los valores de los parámetros poblacionales:
+    -   Hipótesis nula: H0: βi=0 (el valor del coeficiente en la población es 0).
+    -   Hipótesis alternativa: H1: βi≠0 (el valor del coeficiente en la población es distinto de 0).
+    -   En el summario de la regresión, se puede comprobar observando el valor de la columna con *t value* (muestra la prueba t asociada a cada β~i~) o el *p-valor* de la columna Pr (\> \| t \|).
+-   La **bondad de ajuste** del modelo (R^2^) mide el porcentaje de varianza de la variable dependiente (Y) que queda explicado con nuestro modelo. Varía entre 0 y 1, y puede interpretarse como un porcentaje. Sin embargo, a medida que agregamos nuevas variables al modelo, el valor R-Squared será mayor. *Adj R-Squared* penaliza por el número de parámetros en el modelo. Por lo tanto, al comparar modelos anidados, es una buena práctica observar el valor de R^2^ ajustado sobre R^2^. *En el ejemplo, podemos decir que un 74,67% de la variación en el índice de corrupción se puede explicar gracias a las diferencias en el PIB*.
+-   La **significatividad del modelo** (F de Snedecor). Un F estadísticamente significativo significa que al menos uno de los coficientes es estadísticamente significativo. Es decir, que nuestro modelo predice mejor que un modelo sin variables.
+
+### Diagnóstico de la regresión (supuestos) {#supuestos}
+
+1.  **Linealidad**. El supuesto de linealidad puede ser comprobada con un gráfico de Residuos vs Valores Predichos.La línea horizontal, sin patrones distintivos en los puntos, indica una relación lineal.
+
+```{r}
+plot(reg.lineal, 1)
+```
+
+2.  **Normalidad de los residuos**.
+
+<!-- -->
+
+i.  El gráfico QQ de residuos puede usarse para comprobar visualmente el supuesto de normalidad. En este gráfico, los residuos debería seguir aproximadamente una línea recta.
+
+```{r}
+plot(reg.lineal, 2)
+```
+
+ii. Cuando la visualización no es clara y tenemos dudas, podemos hacer un test. Por ejemplo, el de Shapiro-Wilk. La Ho en este test es que los residuos están normalmente distribuidos (lo que queremos). El problema de este test es que está limitado a bases de datos con n menor a 5000 casos. Los resultados confirman que no podemos rechazarla.
+
+```{r}
+norm=rstudent(reg.lineal)
+shapiro.test(norm)
+```
+
+Usando estos mismos datos, también se puede comprobar que la media de los residuos es igual a 0, lo que se calcula gracias a la media. Idealmente, debemos encontrar un valor muy próximo a cero.
+
+```{r}
+mean(reg.lineal$residuals)
+```
+
+iii. Histograma de los residuos.
+
+```{r}
+hist(reg.lineal$residuals, freq = F)
+# Para superponer la curva normal
+m<-mean(reg.lineal$residuals)
+std<-sqrt(var(reg.lineal$residuals))
+curve(dnorm(x, mean=m, sd=std), col="darkblue", lwd=2, add=T)
+```
+
+*No es necesario hacer las tres opciones, sino que con elegir una es suficiente.*
+
+3.  **Homocedasticidad**.
+
+<!-- -->
+
+i.  Este supuesto puede comprobarse examinando el diagrama de scale-location. El gráfico muestra si los residuos se distribuyen equitativamente a lo largo de los rangos de las variables independientes. Deberíamos de observar una línea horizonal, sin fuertes tendencias.
+
+```{r}
+plot(reg.lineal, 3)
+```
+
+ii. Para tener un resultado más concluyente, hacemos un test de heterocedasticidad. La Ho en este test es que la varianza de los residuos es constante (homocedástica, lo que queremos). La evidencia no permite rechazar la hipótesis nula, por lo cual afirmamos que la distribución es homocedástica.
+
+```{r}
+p_load(lmtest)
+bptest(reg.lineal)
+```
+
+*Para este supuesto es mejor el test que la imágen (más dificil de interpretar)*
+
+4.  **Independencia de los residuos** Durbin Watson permite examinar si los residuos se autocorrelacionan con ellos mismos. La Ho en este test es que no están autocorrelacionados (lo que queremos). Esta prueba podría ser especialmente útil cuando tenemos series temporales (correlación serial, encuestas tipo panel). Por ejemplo, esta prueba podría decirte si los residuos en el momento T1 están correlacionados con los residuos en el momento T2 (no deberían estarlo). En los datos de sección cruzada es menos común, aunque posible (correlación espacial).
+
+```{r}
+p_load(car)
+durbinWatsonTest(reg.lineal)
+```
+
+p-value\>0.5. No podemos rechazar la Ho, lo que indica que los errores no están autocorrelacionados (lo que queremos).
+
+5.  **Multicolinealidad**. Hace referencia a la correlación entre las VIs. Podemos medir la existencia de multicolinealidad usado el **VIF** (Variation Inflation Factor). Si el valor está por debajo de 5 está bien, no hay multicolinealidad. Por encima, si no sobrepasa demasiado esta cifra, y las variables que correlacionan son importantes para el análisis que se quiere realizar, se puede aceptar este supuesto aunque la multicolinealidad sea superior a 5.
+
+```{r}
+p_load(rms)
+vif(reg.lineal)
+```
+
+**Hacer los test a la vez**
+
+1.  Con la función `plot()` de R base para obtener todos los gráficos de manera conjunta.
+
+```{r}
+par(mfrow=c(2,2))
+plot(reg.lineal, pch=23 ,bg='red', cex=2) 
+```
+
+Hemos visto arriba cómo interpretar gráficos 1-3. El gráfico inferior-derecha nos ayuda a detectar casos influyentes. **Leverage** es una medida de cuánta influencia ejerce cada punto la recta de regresión. No todos los valores atípicos son influyentes en el análisis de regresión lineal. Al contrario, se puede dar el caso de que haya valores extremos que no son determinantes a la hora de estima la recta de gresión, por lo que los resultados no serían muy diferentes si los excluímos del análisis. Sin embargo, si los casos están fuera de la *distancia de Cook* (lo que significa que tienen puntuaciones de distancia de Cook altas), los resultados de la regresión se alterarán si excluimos esos casos. Para un buen modelo de regresión, la línea suavizada roja debe permanecer cerca de la línea media y ningún punto debe tener una distancia de Cook grande. Si queremos identificar esos puntos en concreto (son los que se indican con un \*):
+
+```{r}
+influence.measures(reg.lineal)
+```
+
+2.  Gloval Validation of Linear Models Assumptions (paquete `gvlma`).
+
+```{r}
+p_load(gvlma)
+gvlma::gvlma(reg.lineal)
+```
+
+Concretamente:
+
+-   **Global Stat** mide si relación entre las VIs y la VD es realmente lineal. El rechazo de la Ho indica que la relación no es lineal.
+-   **Skewness** mide si la distribución está sesgada y necesita una transformación para cumplir con el supuesto de normalidad. El rechazo de la Ho indica que los datos deberían ser transformados.
+-   **Kurtosis** mide si la distribución es leptocúrtica o platicúrtica. El rechazo de la Ho indica que los datos deberían ser transformados.
+-   **Link Function** indica si la variable dependiente es realmente continua o es categórica. El rechazo de la Ho indica que sería conveniente usar un modelo alternativo de regresión, como el logístico o la regresión binomial.
+-   **Heteroscedasticity** mide el supuesto de homocedasticidad. El rechazo de la Ho indica que los residuos son heterocedásticos, y que el modelo precide unos rangos de la variable dependiente mejor que otros.
+
+*En la práctica, lo importante es mirar los siguientes supuetos: multicolinealidad (sobre todo esta, porque se puede ver a simple vista si sabes del tema) y homocedasticidad.*
+
+### Exportar los resultados {#exportar-resultados}
+
+Esta librería cuenta con numerosas opciones para modificar la tabla con los resultados (`?stargazer`)
+
+```{r}
+p_load(stargazer)
+stargazer(reg.lineal,
+          type="text",
+          dep.var.labels=c("Corruption Perception Index"),
+          covariate.labels=c("GDP","cte"))
+```
+
+------------------------------------------------------------------------
+
+## Teoría
+
+### **Objetivos**:
+
+-   **Estimar/predecir** los valores que adoptará la variable dependiente (VD) a partir de valores conocidos del conjunto de variables independientes (VIs).
+-   **Cuantificar** la relación de dependencia. Es decir, determinar qué proporción de varianza de la VD queda explicada por la suma de VIs.
+-   **Determinar el grado de confianza** con que se puede afirmar que la relación observada en los datos muestras se da en la población.
+
+### **Regresión lineal simple**
+
+Cuando hacemos una regresión lineal modelamos una variable continua **y** como una función matemática de una o más variables **xi**, de manera que podamos usar ese modelo de regresión para predecir **y** cuando solo conozcamos **xi**. Hablamos de regresión simple cuando sólo están involucradas dos variables. En este caso, la ecuación de regresión se puede generalizar de la siguiente manera:
+
+-   Fórmula matemática:
+
+$$y = \beta_1 + \beta_2 x$$
+
+-   Fórmula regresiva:
+
+$$\hat{y} = \hat{\beta}_1 + \hat{\beta}_2 + u$$ donde **β1** es la ordenada en el origen (o lo que es lo mismo, el valor de y cuando xi = 0) y **β2** es la pendiente de la recta. En conjunto, se denominan coeficientes de regresión. El término u es el término de error, es decir, la parte de variable dependiente que el modelo de regresión no puede explicar. Gráficamente:
+
+<center>
+
+![Intervalos de confianza](01_img/explicacion_regresion.png){width="320px"}
+
+</center>
+
+### **Mínimos Cuadrados Ordinarios (MCO)**
+
+Mediante la regresión lineal de una variable y sobre una variable x, buscamos una función que sea una aproximación de una nube de puntos (x~i~, y~i~). Por una nube de puntos, sin embargo, pasan infinitas rectas. Para conocer cuál es la más adecuada, se emplea el método de MCO (OLS en inglés) para estimar los parámetros del modelo (*β~i~*).El método de los mínimos cuadrados se utiliza para calcular la recta de regresión lineal que minimiza los residuos, esto es, las diferencias entre los valores reales observados (yi) y los valores estimados por la recta (\hat{y}~i~).
+
+### **Bondad de ajuste del modelo**
+
+El método de mínimos cuadrados selecciona la línea que más se ajusta a nuestras observaciones. Sin embargo, que esa recta sea la mejor, no quiere decir que sea necesariamente buena. Para determinar la bondad de ajuste de nuestro modelo vamos a utilizar el Coeficiente de Determinación R^2^.
+
+El coeficiente de determinación explica cuánta varianza de la variable dependiente podemos explicar con nuestro modelo. Su valor puede oscilar entre 0 y 1. Cuanto mayor sea su valor, más preciso será el modelo de regresión. A menudo se interpreta como un porcentaje.
+
+### **Supuestos de la regresión**
+
+Para ver si un modelo de regresión lineal ajustado es valido, debemos comprobar que se cumplen estas tres condiciones sobre los residuos:
+
+1.  Independencia: los residuos deben ser independientes entre sí
+2.  Homocedasticidad: para cada valor de la variable x, la varianza de los residuos ei debe ser la misma (es decir, que el ajuste es igual de preciso independientemente de los valores que tome x).
+3.  Normalidad: para cada valor de la variable independiente x, los residuos ei se distribuyen normalmente con media 0.
+
+Además:
+
+4.  La relación entre las variables x e y es lineal.
+5.  Ausencia de multicolinealidad (dos de las variables independientes están muy correlacionadas, una explica la otra).
+
+------------------------------------------------------------------------

@@ -1,0 +1,144 @@
+---
+title: "Tablas de contingencia"
+---
+
+```{r include=FALSE}
+source("00_datos/source.R")
+```
+
+## 1. En R
+
+Permite conocer la relación existente entre variables categóricas. Para ello nos valemos de las tablas de contingencia, donde se muestran las frecuencias de dos variables.
+
+### La función table
+
+1.  Crear la tabla con las dos variables y guardarla:
+
+``` r
+tabla <- table(datos$var1, datos$var2)
+```
+
+Ej.:
+
+```{r}
+tabla <- table(datos$situ_lab, datos$hombre)  # (filas, columnas)
+tabla
+```
+
+*La primera variable son las filas de la tabla y la segunda las columnas. La variable con menos categorías se pone en las columnas porque así es más sencillo de visualizar e interpretar, creando una tabla que se extiende de forma vertical en lugar de horizontal (mejor la primera tabla que la segunda).*
+
+2.  Crear la tabla de frecuencias:
+
+-   `prop.table(tabla)` Porcentaje de tabla (el % sobre el total)
+-   `prop.table(tabla, 1)` Porcentajes de fila (el 100% lo suman las filas)
+-   `prop.table(tabla, 2)` Porcentajes de columna (el 100% lo suman las columnas) Para leer estas tablas adecuadamente, hay que fijarse si el 100% lo suman las filas, las columnas o toda la tabla.
+
+Ej.:
+
+```{r}
+prop.table(tabla)   
+```
+
+Indica el porcentaje de cada subgrupo sobre el total de la muestra. Por ejemplo, de esta tabla se puede deducir que del total de la población un 25% son mujeres trabajadoras.
+
+```{r}
+prop.table(tabla, 1)
+```
+
+Indica la composición de género de cada una de las situaciones laborales. Por ejemplo, de los trabajadores un 44% son mujeres y un 56% hombres.
+
+```{r}
+prop.table(tabla, 2)
+```
+
+Indica el perfil laboral dentro de cada género. Por ejemplo, un 54% de las mujeres son trabajadoras, mientras que un 63% de los hombres son trabajadores.
+
+### Otras tablas
+
+Otros dos comandos para realizar tablas de contingencia son `xtabls`y `CrossTable`. Estos comandos resultan más útiles cuando, a parte de las frecuencias y los porcentajes, se quieren conocer también otros estadísticos como el Chi^2^ o los residuos.
+
+**Es mejor usar la función `CrossTable`.**
+
+::: {.panel-tabset}
+
+#### `CrossTable()`
+
+``` r
+library(gmodels)
+tabla3 <- CrossTable(datos$var1, datos$var2, #Las variables
+                     digits = 1, #El número de decimales de la tabla
+                     #Otras opciones de la tabla,
+                     format = "SPSS") #El formato de salida de la tabla
+```
+
+```{r include=FALSE}
+library(gmodels)
+```
+
+Ej.:
+
+```{r}
+CrossTable(datos$situ_lab, datos$hombre, digits=1, expected=T, asresid=TRUE, chisq=TRUE, prop.chisq=F, format="SPSS")
+```
+
+*Para comprobar qué opciones se pueden aplicar a la tabla, conviene mirar `?(CrossTable)`*
+
+Ej. de interpretación de los residuos ajustados: en la celda de mujer y trabajadoras, los residuos ajustados son de -17,9. Esta cifra es inferior a -3,27, por lo que podemos decir que con un nivel de confianza del 99,9% las mujeres se encuentran infrarepresentadas (el símbolo es negativo) dentro del grupo de los trabajadores.
+
+#### `xtabs()`
+
+``` r
+tabla2 <- xtabs(~var1+var2, data = datos) #Crear y guardar la tabla
+ftable(tabla2) #Visualizar la tabla
+summary(tabla2) #Para ver los estadísticos de la tabla (como el chi2 y el p-valor)
+```
+
+Ej.:
+
+```{r}
+tabla2 <- xtabs(~situ_lab+hombre, data=datos)
+ftable(tabla2) 
+summary(tabla2) 
+```
+
+
+:::
+
+------------------------------------------------------------------------
+
+## 2. Teoría
+
+Las hipótesis a comprobar en una tabla de contingencia son:
+
+-   H~0~= no existe asociación entre las variables (son independientes)
+-   H~1~= sí existe asociación entre las variables
+
+Para saber si existe relación entre las variables debemos fijarnos en:
+
+### El análisis de los residuos
+
+A la hora de examinar la asociación entre variable categóricas es importante diferenciar entre:
+
+-   Frecuencia observada: la frecuencia en la muestra
+-   Frecuencia esperada: la frecuencia que observaríamos en el caso de que **no hubiera relación entre las 2 variables**
+-   Residuo: diferencia entre el valor observado y el esperado, que manifiesta dependencia entre pares de valores cuando es distinto de cero. Cuanto mayor sea el residuo, mayor será la probabilidad de que la muestra provenga de una población en la que las variables estén relacionadas. Para determinar si el valor de los residuos es significativo, es necesario estandarizarlos.
+
+Si el residuo ajustado es mayor (en términos absolutos) que el valor crítico para un determinado nivel de confianza (1,96 para el 95%), se puede decir que la diferencia entre los valores esperados y los ajustados para una celda concreta de la tabla es significativa. En función de si el signo de estos residuos es positivo o negativo, sabremos si la relación establecida en la celda es de sobrerrepresentación dentro de la muestra (signo +) o de infrarrepresentación (signo -). *(Hay un ejemplo de esto al final de la explicación de CrossTables en R)*
+
+### Chi2
+
+El chi-cuadrado (χ²) es una prueba estadística que se utiliza para comparar frecuencias observadas con frecuencias esperadas, a fin de determinar si hay una diferencia significativa entre ellas. Se emplea comúnmente para analizar tablas de contingencia y evaluar si dos variables categóricas están relacionadas. El𝜒2 se define como:
+
+$$\chi^2 = \sum \frac {(O - E)^2}{E}$$ Donde:
+
+-   O = Frecuencias observadas
+-   E = Frecuencias esperadas
+
+Por ser suma de cuadrados, se cumple que 𝜒2≥0:
+
+-   𝜒2=0 cuando las variables son independientes
+-   𝜒2 crece a medida que aumenta la dependencia entre las variables
+
+Sabemos que el valor de chi-cuadrado (χ²) es lo suficientemente alto para ser significativo comparándolo con un valor crítico de una tabla de chi-cuadrado, o mediante su p-valor.
+
+------------------------------------------------------------------------

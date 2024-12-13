@@ -1,0 +1,23 @@
+---
+title: "Índice"
+---
+
+## Gráficos de líneas:
+
+::: {layout-ncol="2"}
+![](0_img/lineas_relleno.png){fig-align="right" width="375"}
+
+![](0_img/lineas_valoracion.png){fig-align="left" width="375"}
+:::
+
+## Gráficos de barras:
+
+::: {layout-ncol="2"}
+![](0_img/barras_dobles_ideol.png){fig-align="right" width="375"}
+
+![](0_img/barras_dobles.png){fig-align="left" width="375"}
+:::
+
+## Gráficos de puntos:
+
+## Otros gráficos:

@@ -1,0 +1,175 @@
+---
+title: "Ficheros de datos (dataframe)"
+---
+
+```{r include=FALSE}
+source("00_datos/source.R")
+```
+
+## 1. Apertura de ficheros
+
+Para poder abrir un fichero no basta con el comando, sino que estos se deben guardar dentro de un nuevo objeto:
+
+``` r
+datos<- read_csv("filename")
+```
+
+**Ficheros de texto plano (.csv, .txt, tsv, etc)**
+
+Se necisita abrir la librería readr: `library(readr)`. El comando a utilizar varía en función del separador del archivo:
+
+-   `read_csv()` para ficheros csv delimitados por coma (,).
+-   `read_csv2()` para ficheros csv delimitados por punto y coma (;).
+-   `read_tsv()` lee ficheros separados por tabulador
+-   `read_delim()` lee ficheros sin delimitador
+-   `read_fwf()` lee ficheros de ancho fijo
+-   `read_table()` lee ficheros separados por espacio
+
+Si las columnas tienen nombre, se debe especificar dentro de la función:
+
+``` r
+data<-read_csv("filename", col_names=FALSE)
+```
+
+**Ficheros de excel**
+
+Cuando los datos están un fichero **.xlsx**, utilizamos función `read_excel()` del paquete **readxl**
+
+Si los datos están la primera hoja del fichero *mi_excel.xlsx*
+
+``` r
+library(readxl)
+datos <- read_excel("mi_excel.xlsx", 1)
+```
+
+Si los datos están en una hoja llamada "mi_hoja"
+
+``` r
+datos <- read.excel("mi_excel.xlsx", sheetName = "mi_hoja") 
+```
+
+**Lectura de datos desde ficheros SPSS, Stata y SAS**
+
+Una de las opciones existentes es la función `haven()` del paquete **haven** nos permite abrir ficheros en formatoStata/SPSS/SAS. Por ejemplo:
+
+``` r
+library(haven)
+datos <- read_dta("filename.dta")
+```
+
+Las funciones `read_spss()` y `read_sas()` tienen la misma sintaxis.
+
+<br>
+
+**Apertura manual de los ficheros**
+
+Cuando los ficheros se abren así, lo mejor es copiar el comando que se ha empleado y copiarlo en un chunk del rmd o el script en el que se esté trabajando, para que cuando se quiera volver a abrir el archivo sea más rapido hacerlo.
+
+------------------------------------------------------------------------
+
+## 2. Visualizar el contenido de un dataframe
+
+-   `View(datos)` → abre una nueva pestaña con la base de datos.
+-   `glimpse(datos)` (del paquete tydiverse) → muestra el número de filas y de columnas, el nombre de las variables, su clase y los primeros valores de cada una de ellas.
+
+```{r echo=FALSE, warning=FALSE}
+glimpse(select(datos, 1:10))
+```
+
+-   `dim(datos)` → permite conocer el número de filas y de columnas.
+
+```{r echo=FALSE}
+dim(datos)
+```
+
+-   `summary(datos)` → muestra los descriptivos principales de cada una de las variables del dataframe (media y cuartiles).
+
+```{r echo=FALSE}
+summary(select(datos, 1:5))
+```
+
+-   `colnames(datos)` → lista con el nombre de todas las variables.
+
+```{r echo=FALSE}
+colnames(select(datos, 1:15))
+```
+
+-   `describe(datos)` (del paquete psych).
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(psych)
+describe(select(datos, 1:10))
+```
+
+-   `str(datos)` → metadatos de cada una de las variables (lo que sale si le das al triángulo verde que aparece junto al nombre de la base de datos del environment).
+
+```{r echo=FALSE}
+str(select(datos, 1:5))
+```
+
+-   `head(datos, 10)` → muestra las variables, su clase, los 10 primeros valores de cada uno de ellos.
+
+```{r echo=FALSE}
+head(datos,10)
+```
+
+------------------------------------------------------------------------
+
+## 3. Modificar el fichero
+
+### Filter: seleccionar casos (filas)
+
+Se usa el comando `filter`, del paquete dplyr (en tidyverse). Se establecen una serie de condiciones lógicas a partir de las cuales la función retendrá únicamente los casos (filas) que cumplen con dicha condición (*condiciones como ==, \>, %in%*).
+
+Ej.: en una base de datos donde los casos son municipios, seleccionar solo aquellos pertenecientes a Murcia o Almería:
+
+``` r
+datos_2prov <- datos %>% 
+  filter(Provincia=="Almería" | Provincia=="Murcia")
+  
+datos_2prov <- datos %>% 
+  filter(id_provincia %in% c(5,35))
+```
+
+Si se quieren seleccionar todos los casos menos los que cumplen una determinada excepción, se usa ! antes de la condición. En el siguiente ejemplo, quedarán en la base de datos todos los casos menos los de Cs y Otros:
+
+```r
+filter(!(datos$recuerdo %in% c("Cs","Otros")))
+```
+
+*Al usar tanto este comando como el select, conviene guardar los cambios dentro de un nuevo objeto y dejar el dataset original sin modificar.*
+
+### Select: seleccionar variables
+
+Se usa el comando `select`, del paquete dplyr. Esta función permite reducir el número de columnas, por lo que resulta de gran utilidad cuando tenemos datasets con muchas variables y solo vamos a trabajar con algunas de ellas.
+
+Seleccionar una columna: `select(datos, nombre_variable)`.
+
+Este comando permite seleccionar más de una variable a la vez: `select(datos, x1, x2, x3)`.
+
+También se pueden eliminar una o varias variables que no se quieran en el dataset: `select(datos, -variable)`
+
+### Ordenar las variables
+
+**Variable numérica:**
+
+-   Orden ascendente:
+    -   Opción 1: `datos %>% arrange(variable)`
+    -   Opción 2: `datos <- datos[order(datos$variable), ]`
+-   Orden descendente:
+    -   Opción 1: `datos %>% arrange(desc(variable))`
+    -   Opción 2: `datos <- datos[order(-datos$variable), ]`
+-   Se pueden ordenar los datos por dos variables simultáneamente:
+    -   Opción 1: `datos <- datos %>% arrange(var1, var1)`
+    -   Opción 2: `datos <- datos[order(datos$var1, datos$var2), ]`
+
+**Variable categórica:**
+
+-   Se usan los mismos comandos anteriores para ordenar por orden alfabético ascendente o descendente
+-   Orden personalizado: `mutate(variable = fct_relevel(variable, c("categoría1", "cat2", "catn")))` Ej.:
+
+``` r
+mutate(partido = fct_relevel(party, c("PP", "PSOE", "VOX", "SUMAR", "Otros")))
+```
+
+------------------------------------------------------------------------

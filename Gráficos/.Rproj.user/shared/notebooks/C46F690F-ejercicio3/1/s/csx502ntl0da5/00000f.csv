@@ -1,0 +1,6 @@
+"0","clima_p <- datos %>% "
+"0","  summarise(PSOE=mean(psoe_climatico, na.rm=T),"
+"0","            UP=mean(up_climatico, na.rm=T),"
+"0","            PP=mean(pp_climatico, na.rm=T),"
+"0","            Vox=mean(vox_climatico, na.rm=T)) %>% "
+"0","  mutate(Tema=""cc"")"

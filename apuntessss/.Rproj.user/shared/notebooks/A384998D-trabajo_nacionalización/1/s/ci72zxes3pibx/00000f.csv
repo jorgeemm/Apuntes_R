@@ -1,0 +1,2 @@
+"0","qog <- read_dta(""~/0 - Master/Sistemas electorales/1_presentación/qog.dta"")"
+"0","clea <- read_dta(""~/0 - Master/Sistemas electorales/1_presentación/clea_nacionalizacion/clea_enp_lc_20230215_national.level.dta"")"

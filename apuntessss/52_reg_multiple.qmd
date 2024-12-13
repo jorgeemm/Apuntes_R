@@ -1,0 +1,385 @@
+---
+title: "Lineal múltiple"
+---
+
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,
+                      fig.align = 'center', # Para que los gráficos de los comandos estén centrados en la página
+                      out.width = '60%') # Para modificar el tamaño de los gráficos (en este caso hacerlos algo más pequeños)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(pacman)
+source("00_datos/source.R")
+```
+
+Llamamos regresión lineal múltiple al análisis de regresión que incluye más de una variable independiente. Se representa como:
+
+$$E(y) = \beta_{0}  + \beta_{1}{x_{1}} + \ \beta_{12}{x_{2}} +  \beta_{3}{x_{3}} + u$$
+
+donde **β~0~** es el valor de *y* cuando todas las *x~i~* valen 0, **β~i~** son los coeficientes de las variables independientes y el término **u** es el término de error.
+
+Esta ecuación definiría un hiperplano, pues con una VI se define una recta, con dos VIs un plano, con tres VIs un espacio de tres dimensiones, y así sucesivamente.
+
+### Resumen de las funciones principales
+
+``` r
+# Eliminar los NA de la base de datos
+lista_variables <- c("var1","var2","var3"...)
+datos_reg <- datos[lista_variables]
+datos_reg <- na.omit(datos_Reg)
+
+# Función de la regresión
+regresión <- lm(var1~var2 + var3 + var4, datos_reg) #Librería e1071
+summary(regresión)
+
+#Visualizar los coeficientes
+coefplot(regresión, xlim=c(-5, 5), col.pts="blue", intercept=TRUE, main="Coeficientes de la regresión") #Librería arm
+
+# Comprobación de los supuestos principales
+plot(regresión,2) #Normalidad de los residuos
+bptest(regresión) #Homocedasticidad (librería lmtest)
+vif(regresión) #Multicolinealidad (librería rms)
+
+# Valores predichos
+
+
+#Exportar los resultados
+stargazer(regresión, type="text") #Librería stargazer
+
+#Comparación de modelos
+AIC(modelo1, modelo2, modelo3)
+BIC(modelo1, modelo2, modelo3)
+```
+
+### Ejemplo práctico
+
+Vamos a estimar la propensión de voto a un partido (variable escala) en función de las siguientes variables:
+
+-   edad del entrevistado (variable continua)
+-   sexo (variable dicotómica)
+-   nivel educativo (variable dicotómica)
+-   opinión sobre la situación económica personal (variable dicotómica)
+-   opinión sobre la situación económica en España (variable dicotómica)
+-   recuerdo de voto (variable politómica)
+-   ideología del entrevistado (variable escala)
+
+Es posible que estas variables no configuren un buen modelo. Sin embargo, son un buen ejercicio porque nos permitirá ver cómo se interpretan los diferentes tipos de variables e identificar algunos problemas.
+
+### Preparar la base de datos {#eliminarNA}
+
+La regresión lineal es "sensible" a la existencia de casos perdidos en las variables que se introducen en los modelos. Para evitar que diferentes modelos tengan diferentes número de casos **(en cuyo caso no serían comparables)** creamos un nuevo data.frame que contenga únicamente las columnas que vamos a usar para estimar los modelos, para eliminar de estos los casos perdidos. A continuación, eliminamos todas las filas que continenen valores perdidos. Esto se hace usando la funciones `na.omit()` o `na.exclude()`.
+
+```{r message=F, warning=F}
+myvars <- c("prop_psoe", "prop_pp", "edad", "hombre", "recuerdo19", "estudios_universitarios", "ideol", "ecoper", "ecoesp")   # nuevo data.frame
+datos_red<-datos[myvars] #Los corchetes sirven para seleccionar solo el conjunto de datos especificado. También podría usarse la función select.
+datos_red<- na.omit(datos_red)
+```
+
+### El modelo de regresión {#modeloreg}
+
+A continuación, esitmamos el modelo de regresión (modelPP) con las variables arriba especificadas. Usaremos la función `lm()` de la libería *e1071* (como ocurre siempre, existen muchas otras librerías que incluyen funciones para estimar regresiones lineales y son igualmente válidas).
+
+```{r message=FALSE, warning=FALSE}
+library(e1071)
+
+modelPP <- lm(prop_pp ~ edad + hombre + estudios_universitarios + ecoper + ecoesp + recuerdo19 + ideol, data=datos_red)  
+summary(modelPP)
+```
+
+Como podemos observar, R transforma la variable politómica "recuerdo19" en c-1 variables. Lo hace porque está definida como factor, de lo contrario trataría la variable como numérica (lo cual no tendría ningún sentido). En este caso, cada variable se interpreta **en relación a la categoría de refencia** (en este caso, PSOE). La función `relevel()` nos permite cambiar cambiar la categoría de referencia. Por ejemplo, si queremos que "PP" sea nuestra categoría de referencia, haríamos lo siguiente:
+
+Lo único que cambia es la categoría de referencia en la variable recuerdo19 y, por consiguiente, los coeficientes de las dummies. El resto de la tabla será idéntica.
+
+``` r
+modelPP_newrc<- lm(prop_pp ~ edad + hombre + estudios_universitarios + ecoper + ecoesp +relevel(recuerdo19, ref ="PP") + ideol, data=datos_red) 
+summary(modelPP_newrc)
+```
+
+#### Significatividad del modelo
+
+Los resultados muestran que todas las variables menos edad y género son estadísticamente significativas para un NC del 99.9%. Esto es así porque, dado que los p-valores son \<0.001, podemos rechazar la hipótesis nula con una probabilidad de equivocarnos inferior a 0.001. <br>
+
+### Interpretación de los coeficientes {#coef}
+
+Más allá de la significación estadística, es importante interpretar el tamaño del coeficiente. En otras palabras, la magnitud del efecto. En regresión lineal múltiple, los coeficientes de regresión representan el **cambio promedio que se produce en la VD por cada unidad de cambio en la VI, mientras el resto de variables se mantiene constante** (*ceteris paribus*). Este control estadístico que proporciona la regresión es muy importante, porque aisla el efecto de una variable del resto de variable incluidas en el modelo.
+
+El valor de los coeficientes se obtiene con la función `sumary()` del modelo, y también puede extraerse fácilmente de la lista *modelPP* (ver función `View(modelPP)`)
+
+```{r}
+modelPP$coefficients
+```
+
+Vamos a ver algunos ejemplos:
+
+-   El *coeficiente de estudios_universitarioscon_ES* (0.1203) indica que, manteniendo constantes todas las demás variables, tener estudios universitarios está asociado con un aumento de 0.1203 unidades en la propensión de voto al Partido Popular. En otras palabras, las personas con estudios universitarios tienen, en promedio, una mayor inclinación a votar por el Partido Popular en comparación con aquellas que no tienen estudios universitario (*ceteris paribus*)
+-   El *coeficiente de recuerdo19PP* (4.149) indica que, manteniendo constantes todas las demás variables, las personas que recuerdan haber votado al Partido Popular en las elecciones de 2019 tienen una propensión de voto al Partido Popular 4.149 unidades mayor en comparación con aquellas que recuerdan haber votado al PSOE (la categoría de referencia). Esto significa que, en términos de propensión al voto, el recuerdo de haber votado al PP en el pasado está fuertemente asociado con una mayor inclinación a votar nuevamente por este partido, mucho más que en comparación con aquellos que votaron al PSOE (*ceteris paribus*)
+
+#### Visualizacion de los coeficientes
+
+Una manera rápida de presentar los resultados de la regresión es representar gráficamente los coeficientes. Para ello, podemos usar la función `coefplot()`
+
+```{r message=F, warning=F}
+p_load(arm)
+coefplot(modelPP, xlim=c(-5, 5),col.pts="blue", intercept=TRUE, main="Coeficientes de la regresión")
+```
+
+Este tipo de gráfico es particularmente útil cuando queremos **comparar los coeficientes de dos o más modelos**. Por ejemplo, si calculamos el mismo modelo para estimar la propensión de voto al PSOE, podemos visualizar los coeficientes de ambos modelos de la siguiente manera
+
+```{r fig1, fig.heigh=3, fig.with=5, message=F, warning=FALSE}
+#Estimamos el modelo
+modelPSOE <- lm(prop_psoe ~ edad + hombre + estudios_universitarios + ecoper + ecoesp + recuerdo19 + ideol, data=datos_red)   
+
+#Representamos gráficamente los coeficientes de ambas regresiones (argumento add=T)
+par(mfrow = c(1,1))
+coefplot(modelPP, xlim=c(-5, 5),col.pts="blue", intercept=TRUE, main="Coeficientes")
+coefplot(modelPSOE, add=TRUE, col.pts="red",  intercept=TRUE, offset=0.2, main="PSOE") 
+
+#Añadimos leyenda
+legend("topright",  
+       c("Propensión voto PP", "Propensión voto PSOE"), 
+       lty = c(1,1),       
+       col=c("blue","red"),
+       cex = 0.7)
+```
+
+#### ¿Qué variable es la más importante?
+
+Dado que las variables están expresadas en diferentes unidades, los coeficientes de la regresión no son directamente comparables entre sí. Para hacer esto posible, es necesario transformar dichos coeficientes en coeficientes estandarizados (coeficientes Beta). Los coeficientes estandarizados se basan en puntuaciones típicas y, por lo tanto, son comparables entre sí.
+
+```{r message=F, warning=FALSE}
+p_load(lm.beta)
+betaPP<-lm.beta(modelPP)
+summary(betaPP)
+```
+
+Los coeficientes estandarizados representan la cantidad de cambio, en unidades de desviación estándar, que se producirá en la variable dependiente por cada aumento de una unidad de desviación estándar en la correspondiente variable independiente (manteniendo constantes las demás variables). Al estandarizar las variables, la constante se iguala a 0, por lo que no se incluye en la ecuación de predicción. Estos coeficientes indican la importancia relativa de cada variable independiente en la ecuación de regresión. En general, cuanto mayor es el valor absoluto del coeficiente de regresión estandarizado, mayor es el peso de la variable en la ecuación de regresión.
+
+#### Bondad de ajuste del modelo
+
+El R^2^ tiene un valor de 0.5873, lo que indica que nuestro modelo explica el 58.73% de varianza de la VD. En este caso, el valor de R^2^ ajustado es prácticamente idéntico.
+
+### Diagnóstico de la regresión {#supuestoS}
+
+Vamos a comprobar los supuestos de la regresión
+
+1.  *Normalidad de los residuos*. El test de normalidad que usamos en el ejemplo de regresión simple (*Shapiro test*) está limitado a n=5000. Dado que no tenemos esa opción, vamos a revisar el supuesto de normalidad un gráfico Q-Q:
+
+```{r message=F, warning=F, fig.height = 5, fig.width = 5, fig.align = "center"}
+plot(modelPP, 2)
+```
+
+Comprobamos también que la media de los residuos=0
+
+```{r message=F, warning=F}
+mean(modelPP$residuals)
+```
+
+2.  *Homocedasticidad* (varianza constante de los residuos)
+
+-   Test de homocedasticidad
+
+```{r message=F, warning=F}
+#install.packages("lmtest")
+library(lmtest)
+het.lm<-bptest(modelPP)
+het.lm
+```
+
+La hipótesis nula en este test es que la varianza de los residuos es constante (homocedástica). La evidencia permite rechazar la hipótesis nula, confirmando que la distribución es heterocedástica (no se cumple el suspuesto). La distrivución de los residuos no es constante.
+
+-   Gráficamente:
+
+```{r}
+plot( modelPP, 3)
+```
+
+3.  *Multicolinealidad*.
+
+```{r message=F, warning=F}
+reg.lineal.vif <- car::vif(modelPP)
+reg.lineal.vif
+```
+
+No parece que existan problemas de multicolinealidad en nuestro modelo. <br>
+
+### Valores predichos {#predichos}
+
+Al igual que hicimos con los coeficientes, una vez calculado el modelo podemos extraer los valores predichos (estimados) para cada individuo en la muestra consultando `modelPP$fitted.values`. Esto nos permite, por ejemplo, calcular el valor medio de propensión de voto al PP:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+mean(modelPP$fitted.values)
+```
+
+También podemos estimar qué valor tendrá la variable dependiente para determinados valores de las variables independientes. Por ejemplo, vamos a calcular la propensión de voto al PP de un varón de 50 años, sin estudios universitarios (0), que valora positivamente su situación económica personal (1) pero no la situación económica del país (0), con ideología 5 y que en las elecciones de 2019 votó a C\`s.
+
+```{r}
+data1 <- data.frame(hombre="Hombre", edad=50, estudios_universitarios="con EU", ecoper="positiva", ecoesp="negativa", ideol=5, recuerdo19="Ciudadanos")
+yhat1<-predict(modelPP, newdata = data1)
+yhat1
+```
+
+O calcular, por ejemplo, cómo cambia la propensión de voto al PP para un individuo con esas mismas características en función de su edad:
+
+```{r}
+data2<- data.frame(hombre="Hombre", edad=c(20, 30, 40, 50, 60, 70, 80), estudios_universitarios="con EU", ecoper="positiva", ecoesp="negativa", ideol=5, recuerdo19="Ciudadanos")
+yhat2<-predict(modelPP, newdata = data2)
+yhat2
+```
+
+#### Intervalos de confianza
+
+Los intervalos de confianza reflejan la incertidumbre alrededor de las estimaciones medias. Siguiendo con el ejemplo anterior, vamos a calcular las probabilidades predichas con sus intervalos de confianza para todos los individuos en la muestra (*fit es el valor predicho*):
+
+```{r}
+yhat<-predict(modelPP, newdata = datos_red, interval = "confidence")
+head(yhat) #visualizamos los 5 primeros casos
+```
+
+Si no queremos ver los casos perdidos usamos el argumento *na.action* para especificarlo
+
+```{r}
+yhat<-predict(modelPP, newdata = datos_red, interval = "confidence", na.action=na.exclude)
+head(yhat)
+```
+
+El *output* contiene 3 columnas:
+
+-   FIT: el valor predicho (que también habíamos consultado a través de `modelPP$fitted.values`)
+-   LWR: límite inferior de la banda de confianza
+-   UPR: límite superior de la banda de confianza
+
+Por defecto, R produce bandas de confianza al 95%, pero esto se puede cambiar con el argumento *level*
+
+```{r}
+yhat<-predict(modelPP, newdata = datos_red, interval = "confidence", na.action=na.exclude, level=0.99)
+head(yhat)
+```
+
+### Exportar resultados {#Exportar}
+
+Vamos a exportar a formato científico los dos modelos que hemos estimado: modelPP y modelPSOE
+
+#### Librería stargazer
+
+```{r message=F, warning=F}
+#install.packages("stargazer")
+library(stargazer)
+stargazer(modelPP, modelPSOE,      #Incluir aquí Modelo1, Modelo2, M3...
+          type="text",
+          dep.var.labels=c("Propensión voto PP", "Propensión voto PSOE"),
+          covariate.labels=c("Edad", "Hombre", "Estudios superiores", "Economia personal: positiva (cr:neg)", "Economia país: positiva (cr:neg)", "Voto 2019:PP (cr: PSOE)", "Voto 2019:VOX (cr: PSOE)", "Voto 2019:Podemos (cr: PSOE)", "Voto 2019:C´s (cr: PSOE)", "Voto 2019:Más Madrid (cr: PSOE)", "Voto 2019:Otros (cr: PSOE)", "Voto 2019:Blanco (cr: PSOE)", "Ideología", "Constante"))
+```
+
+#### Librería jtools
+
+Está disponible únicamente para un tipo de modelos muy limitado, pero OLS y GLM están incluidos.
+
+Instalamos los paquetes que van a hacernos falta
+
+```{r message=F, warning=FALSE}
+p_load(jtools, ggstance, huxtable)
+```
+
+La función `summ()` muestra los resultados de la regresión
+
+```{r message=F, warning=FALSE}
+summ(modelPP)
+```
+
+La representación gráfica de los coeficientes también se hace de manera muy sencilla y muy parecida a la que ya conocemos
+
+```{r}
+plot_summs(modelPP)
+```
+
+Se pueden añadir tantos modelos como deseemos
+
+```{r}
+plot_summs(modelPP, modelPSOE)
+```
+
+También permite visualizar de manera rápida el efecto de una variable sobre la variable dependiente, siempre que la primera sea continua. Por ejemplo, vamos cómo varía la propensión de votar al PP con la ideología, controlado por el resto de variables
+
+```{r}
+effect_plot(modelPP, pred = ideol, interval = TRUE)
+```
+
+Finalmente, la función export_summs de jtools permite representar las tablas en formato "científico".
+
+```{r}
+export_summs(modelPP, modelPSOE)
+
+```
+
+Para renombrar los modelos y las variables, usaremos los argumentos model.names y coefs de la siguiente manera
+
+```{r}
+export_summs(modelPP, modelPSOE, 
+  model.names=c("Prop. Voto PP", 
+                "Prop. Voto PSOE"), 
+  coefs=c("Edad"="edad", 
+          "Hombre"="hombreHombre", 
+          "Estudios Universitarios"="estudios_universitarioscon EU", 
+          "Economía personal positiva (cr=neg)"="ecoperpositiva", 
+          "Economía país positiva (cr=neg)"="ecoesppositiva", 
+          "Voto 2019:PP (cr=PSOE)"="recuerdo19PP",
+          "Voto 2019:VOX (cr=PSOE)"="recuerdo19VOX",
+          "Voto 2019:Podemos (cr=PSOE)"="recuerdo19Podemos",
+          "Voto 2019:C´s (cr=PSOE)"="recuerdo19Ciudadanos",
+          "Voto 2019:Mas País (cr=PSOE)"="recuerdo19Más Madrid",
+          "Voto 2019:Otros (cr=PSOE)"="recuerdo19Otros",
+          "Voto 2019:Blanco (cr=PSOE)"="recuerdo19En blanco",
+          "Ideología"="ideol",
+          "Constante"="(Intercept)"
+))
+```
+
+### Comparación de modelos {#comparar_modelos}
+
+Es muy frecuente tener que elegir entre diferentes modelos. Hasta ahora, nos hemos fijado en el R^2^ para ver cuál era la bondad de ajuste del modelo. Aquí, vamos a introducir dos nuevos indicadores: **BIC** (Criterio de Información Bayesiano) y **AIC** (Criterio de Información de Akaike).
+
+Cuando introducimos nuevas variables en el modelo aumentamos el ajuste (a mayor número de variables, mayor R^2^), pero corremos el peligro de caer en sobreajuste (introducir demasiadas variables, siendo algunas de ellas innecesarias para el modelo). Solo es conveniente incluir más variables en un modelo si la diferencia que añaden sobre la significatividad del modelo es lo suficiente relevante. BIC y AIC resuelven este problema mediante la introducción de un término de penalización para el número de parámetros en el modelo (esta penalización es mayor en el BIC que en el AIC). Así, dados dos modelos estimados, el modelo con el menor valor de BIC/AIC es preferible. Existe también el AIC corregido (AICc), que es una variante del AIC para muestras reducidas (pocos datos).
+
+*No es necesario realizar los dos análisis, sino que con uno de los dos es suficiente para ver qué modelo es más eficiente.*
+
+Estimamos los modelos con el dataset reducido. El modelo1 incluye sólamente la variable ideología. El modelo2 añade el sexo y el nivel educativo. El modelo3 es el full-model, que incluye la edad y la situación laboral del entrevistado.
+
+```{r}
+modelo1 <- lm(prop_pp ~ hombre+estudios_universitarios, datos_red) 
+modelo2 <- lm(prop_pp ~ hombre+estudios_universitarios+ ideol, datos_red)  
+modelo3 <- lm(prop_pp ~ hombre+estudios_universitarios+ideol+recuerdo19, datos_red)  
+```
+
+Visualizamos los 3 modelos en una misma tabla
+
+```{r message=F, warning=F}
+library(stargazer)
+stargazer(modelo1, modelo2, modelo3,    
+          type="text",
+          dep.var.labels=c("M1", "M2", "M3"),
+          covariate.labels=c("Hombre", "Estudios superiores","Ideología", "Voto 2019:PP (cr: PSOE)", "Voto 2019:VOX (cr: PSOE)", "Voto 2019:Podemos (cr: PSOE)", "Voto 2019:C´s (cr: PSOE)", "Voto 2019:Más Madrid (cr: PSOE)", "Voto 2019:Otros (cr: PSOE)", "Voto 2019:Blanco (cr: PSOE)",  "Constante"))
+```
+
+Y calculamos los BIC/AIC
+
+```{r message=F, warning=F}
+AIC(modelo1, modelo2, modelo3)
+BIC(modelo1, modelo2, modelo3)
+```
+
+Diferencias más notables:
+
+-   R^2^ ajustado es una medida de la varianza explicada en la variable de respuesta por los predictores, mientras que BIC/AIC son una compensación entre la bondad del ajuste y la complejidad del modelo.
+-   R^2^ puede subir o bajar según se agregue o no otra variable al modelo. Pero el AIC/BIC no necesariamente cambian con la adición de una variable, sino que cambia con la composición de los predictores.
+-   Otra ventaja adicional es que AIC/BIC permiten comparar entre modelos que no están anidados.
+
+------------------------------------------------------------------------
