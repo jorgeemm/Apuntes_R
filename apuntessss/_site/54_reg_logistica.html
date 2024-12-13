@@ -311,12 +311,12 @@ window.Quarto = {
   <li><a href="#diagnóstico" id="toc-diagnóstico" class="nav-link" data-scroll-target="#diagnóstico">Diagnóstico</a></li>
   <li><a href="#presentación-de-los-resultados" id="toc-presentación-de-los-resultados" class="nav-link" data-scroll-target="#presentación-de-los-resultados">Presentación de los resultados</a></li>
   <li><a href="#validación-del-modelos-de-clasificaicón" id="toc-validación-del-modelos-de-clasificaicón" class="nav-link" data-scroll-target="#validación-del-modelos-de-clasificaicón">Validación del modelos de clasificaicón</a></li>
-  <li><a href="#comparación-de-modelos" id="toc-comparación-de-modelos" class="nav-link" data-scroll-target="#comparación-de-modelos"><strong>Comparación de modelos</strong></a>
+  <li><a href="#comparación-de-modelos" id="toc-comparación-de-modelos" class="nav-link" data-scroll-target="#comparación-de-modelos">Comparación de modelos</a>
   <ul class="collapse">
   <li><a href="#modelo-de-clasificación-random-forest" id="toc-modelo-de-clasificación-random-forest" class="nav-link" data-scroll-target="#modelo-de-clasificación-random-forest">Modelo de clasificación Random Forest</a></li>
   <li><a href="#modelo-de-clasificación-naive-bayes" id="toc-modelo-de-clasificación-naive-bayes" class="nav-link" data-scroll-target="#modelo-de-clasificación-naive-bayes">Modelo de clasificación Naive Bayes</a></li>
   </ul></li>
-  <li><a href="#mejora-de-modelos" id="toc-mejora-de-modelos" class="nav-link" data-scroll-target="#mejora-de-modelos"><strong>Mejora de modelos</strong></a></li>
+  <li><a href="#mejora-de-modelos" id="toc-mejora-de-modelos" class="nav-link" data-scroll-target="#mejora-de-modelos">Mejora de modelos</a></li>
   </ul>
 </nav>
     </div>
@@ -383,7 +383,11 @@ window.Quarto = {
 <ul>
 <li>No-linealidad: La función de vinculación logit es no-lineal. Esto implica que <strong>el cambio en la VD producido por el incremento de una unidad en la VI depende del valor que tome la variable</strong>. Es menos importante en los extremos de las VI, y mas importante en los valores centrales.</li>
 </ul>
-<p><strong><em>COPIAR IMAGEN</em></strong></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/clipboard-2977121164.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="300"></p>
+</figure>
+</div>
 <ul>
 <li>Heterocedasticidad: En regresión logística se asume heterocedasticidad (varianza de los residuos no constante). Es lo contrario que en la regresión lineal, ya que la representación de la regresión logística no es lineal, sino que se busca que debe existir varianza en los residuos no constante.</li>
 </ul>
@@ -559,7 +563,7 @@ recuerdo19En blanco           -0.85381772  0.49558218</code></pre>
 </ul>
 <p>En la tabla:</p>
 <ul>
-<li><p>Odds ratio<sub>ideología</sub>=e<sup>0.290559</sup>=1.337. Para cada punto que que nos vemos a la derecha en la escala de ideología, la probabilidad de votar a VOX (sobre votar a otro partido) aumenta en un factor de 1.337 (cuando el resto de variables permanecen constantes). O si se quiere expresar en porcentaje.</p>
+<li><p>Odds ratio<sub>ideología</sub>=e<sup>0.290559</sup>=1.337. Para cada punto que nos movemos a la derecha en la escala de ideología, la probabilidad de votar a VOX (sobre votar a otro partido) aumenta en un factor de 1.337 (cuando el resto de variables permanecen constantes). O si se quiere expresar en porcentaje.</p>
 <ul>
 <li>(1,337 - 1)* 100 = 0,337 * 100 = 33,7%</li>
 </ul></li>
@@ -955,7 +959,7 @@ FPR = \frac{FP}{FP + TN}
 <p>Nota: auc es un <em>S4 object system</em>, por eso las consultas de sus elementos son un poco diferentes a lo que hemos visto hasta ahora. Nosotros no vamos a entrar en esto, pero si teneís curiosidad podéis leer <a href="http://adv-r.had.co.nz/S4.html">este capítulo del libro de Hadley Wickham</a>.</p>
 </section>
 <section id="comparación-de-modelos" class="level2">
-<h2 class="anchored" data-anchor-id="comparación-de-modelos"><strong>Comparación de modelos</strong></h2>
+<h2 class="anchored" data-anchor-id="comparación-de-modelos">Comparación de modelos</h2>
 <p>Normalmente, la curva ROC se utiliza para comparar la precisión de diferentes algoritmos de clasificación (como regresión logística, Naive Bayes, Random Forest, LDA, etc). Aunque en nuestro caso solo hemos trabajado con regresión logística, vamos a estimar diferentes modelos a modo de ejemplo, pero sin profundizar en los detalles de su funcionamiento.</p>
 <section id="modelo-de-clasificación-random-forest" class="level3">
 <h3 class="anchored" data-anchor-id="modelo-de-clasificación-random-forest">Modelo de clasificación Random Forest</h3>
@@ -1133,7 +1137,7 @@ recuerdo19                     374.84054</code></pre>
 </section>
 </section>
 <section id="mejora-de-modelos" class="level2">
-<h2 class="anchored" data-anchor-id="mejora-de-modelos"><strong>Mejora de modelos</strong></h2>
+<h2 class="anchored" data-anchor-id="mejora-de-modelos">Mejora de modelos</h2>
 <p>Vamos a explorar qué ocurre si tomamos en consideracion que algunas variables pueden no tener un efecto lineal. Por ejemplo, la edad. Sabemos por otros estudios que el perfil de edad de los votantes de Vox es diverso, pero el partido tiene un respaldo importante entre votantes de mediana edad (35-54 años). Para tomar en cuenta esto, vamos a elevar ambos la variable edad al cuadrado. Recordad que siempre hay que incluir el efecto principal y el cuadrático</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>logit3.vox <span class="ot">&lt;-</span> <span class="fu">glm</span>(intvox <span class="sc">~</span> hombre <span class="sc">+</span> estudios_universitarios <span class="sc">+</span> edad <span class="sc">+</span> <span class="fu">I</span>(edad<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> ecoesp <span class="sc">+</span> ideol <span class="sc">+</span> recuerdo19,</span>

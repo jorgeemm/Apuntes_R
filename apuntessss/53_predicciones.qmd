@@ -2,22 +2,7 @@
 title: "Predicciones"
 ---
 
-```{=html}
-<style>
-body {
-text-align: justify}
-</style>
-```
-
-```{r setup, include=FALSE, message=FALSE, warning=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE,
-                      fig.align = 'center', # Para que los gráficos de los comandos estén centrados en la página
-                      out.width = '60%') # Para modificar el tamaño de los gráficos (en este caso hacerlos algo más pequeños)
-```
-
 ```{r include=FALSE}
-library(tidyverse)
-library(pacman)
 source("00_datos/source.R")
 ```
 
@@ -91,7 +76,7 @@ train.data <- qog2017.red %>%
 
 # El test set son las filas que no están en el train set
 test.data <- qog2017.red %>%
-  anti_join(train.data, by = "row_id") # se usa para obtener el 30% restante (las filas que no están en                                            el set de entrenamiento), asegurando que no haya filas duplicadas.
+  anti_join(train.data, by = "row_id") # se usa para obtener el 30% restante (las filas que no están en el set de entrenamiento), asegurando que no haya filas duplicadas.
 ```
 
 Nota: `set.seet()`establece el número inicial que se usa para generar una secuencia de números aleatorios. De esta manera, nos aseguramos de que obtener el mismo resultado cada vez que se ejecuta el mismo proceso.
@@ -180,7 +165,7 @@ El método de validación cruzada de *k-fold* evalúa el rendimiento del modelo 
 -   Reservar un subconjunto y entrenar el modelo en todos los demás subconjuntos
 -   Probar el modelo en el subconjunto reservado y registrar el error de predicción
 -   Repetir este proceso hasta que cada uno de los k subconjuntos haya servido como conjunto de prueba.
--   Calcule el promedio de los errores registrados. Esto se llama el *error de validación* cruzada que sirve como la métrica de rendimiento para el modelo.
+-   Calcular el promedio de los errores registrados. Esto se llama el *error de validación* cruzada que sirve como la métrica de rendimiento para el modelo.
 
 La ventaja más obvia de este método, en comparación con LOOCV, es computacional. Una ventaja menos obvia, pero potencialmente más importante, es que a menudo proporciona estimaciones más precisas de la tasa de error de prueba que LOOCV (James et al., 2014).
 

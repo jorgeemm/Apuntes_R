@@ -54,7 +54,7 @@ A diferencia de la regresión lineal:
 
 -   No-linealidad: La función de vinculación logit es no-lineal. Esto implica que **el cambio en la VD producido por el incremento de una unidad en la VI depende del valor que tome la variable**. Es menos importante en los extremos de las VI, y mas importante en los valores centrales.
 
-***COPIAR IMAGEN***
+![](images/clipboard-2977121164.png){fig-align="center" width="300"}
 
 -   Heterocedasticidad: En regresión logística se asume heterocedasticidad (varianza de los residuos no constante). Es lo contrario que en la regresión lineal, ya que la representación de la regresión logística no es lineal, sino que se busca que debe existir varianza en los residuos no constante.
 
@@ -170,7 +170,7 @@ El *odds ratio*, o razón de probabilidades se calcula como e^*coef*^ y es la fr
 
 En la tabla:
 
--   Odds ratio~ideología~=e^0.290559^=1.337. Para cada punto que que nos vemos a la derecha en la escala de ideología, la probabilidad de votar a VOX (sobre votar a otro partido) aumenta en un factor de 1.337 (cuando el resto de variables permanecen constantes). O si se quiere expresar en porcentaje.
+-   Odds ratio~ideología~=e^0.290559^=1.337. Para cada punto que nos movemos a la derecha en la escala de ideología, la probabilidad de votar a VOX (sobre votar a otro partido) aumenta en un factor de 1.337 (cuando el resto de variables permanecen constantes). O si se quiere expresar en porcentaje.
 
     -   (1,337 - 1)\* 100 = 0,337 \* 100 = 33,7%
 
@@ -400,7 +400,7 @@ En nuestro caso, AUC=0.920. Este valor indica que nuestro modelo clasifica bien 
 
 Nota: auc es un *S4 object system*, por eso las consultas de sus elementos son un poco diferentes a lo que hemos visto hasta ahora. Nosotros no vamos a entrar en esto, pero si teneís curiosidad podéis leer [este capítulo del libro de Hadley Wickham](http://adv-r.had.co.nz/S4.html).
 
-## **Comparación de modelos**
+## Comparación de modelos
 
 Normalmente, la curva ROC se utiliza para comparar la precisión de diferentes algoritmos de clasificación (como regresión logística, Naive Bayes, Random Forest, LDA, etc). Aunque en nuestro caso solo hemos trabajado con regresión logística, vamos a estimar diferentes modelos a modo de ejemplo, pero sin profundizar en los detalles de su funcionamiento.
 
@@ -539,7 +539,7 @@ legend(0.4, 0.6,
 
 Como se puede observar en el gráfico arriba, la predicción es mucho peor cuando no disponemos de información sobre ideología y recuerdo de voto. Una alternativa sería imputar los valores perdidos en las variables que tienen un número elevado de NA antes de hacer la regresión.
 
-## **Mejora de modelos**
+## Mejora de modelos
 
 Vamos a explorar qué ocurre si tomamos en consideracion que algunas variables pueden no tener un efecto lineal. Por ejemplo, la edad. Sabemos por otros estudios que el perfil de edad de los votantes de Vox es diverso, pero el partido tiene un respaldo importante entre votantes de mediana edad (35-54 años). Para tomar en cuenta esto, vamos a elevar ambos la variable edad al cuadrado. Recordad que siempre hay que incluir el efecto principal y el cuadrático
 

@@ -298,10 +298,6 @@ body {
 </header>
 
 
-<style>
-body {
-text-align: justify}
-</style>
 <section id="validación-del-modelo-de-regresión" class="level2">
 <h2 class="anchored" data-anchor-id="validación-del-modelo-de-regresión">Validación del modelo de regresión</h2>
 <p>Hay ocasiones en las que queremos determinar la precisión de un modelo a la hora de predecir nuevas observaciones (que no se han utilizado para construir el modelo). En otras palabras, queremos estimar el error de predicción de nuestro modelo. Con <strong>validación cruzada</strong> nos referimos a un conjunto de métodos para medir el rendimiento de un modelo dado en nuevos conjuntos de datos de prueba.</p>
@@ -387,7 +383,7 @@ text-align: justify}
 <span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co"># El test set son las filas que no están en el train set</span></span>
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>test.data <span class="ot">&lt;-</span> qog2017.red <span class="sc">%&gt;%</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(train.data, <span class="at">by =</span> <span class="st">"row_id"</span>) <span class="co"># se usa para obtener el 30% restante (las filas que no están en                                            el set de entrenamiento), asegurando que no haya filas duplicadas.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(train.data, <span class="at">by =</span> <span class="st">"row_id"</span>) <span class="co"># se usa para obtener el 30% restante (las filas que no están en el set de entrenamiento), asegurando que no haya filas duplicadas.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Nota: <code>set.seet()</code>establece el número inicial que se usa para generar una secuencia de números aleatorios. De esta manera, nos aseguramos de que obtener el mismo resultado cada vez que se ejecuta el mismo proceso.</p>
 <p>A continuación, estimamos el modelo de regresión con los datos de entrenamiento (train.data):</p>
@@ -518,7 +514,7 @@ Tuning parameter 'intercept' was held constant at a value of TRUE</code></pre>
 <li>Reservar un subconjunto y entrenar el modelo en todos los demás subconjuntos</li>
 <li>Probar el modelo en el subconjunto reservado y registrar el error de predicción</li>
 <li>Repetir este proceso hasta que cada uno de los k subconjuntos haya servido como conjunto de prueba.</li>
-<li>Calcule el promedio de los errores registrados. Esto se llama el <em>error de validación</em> cruzada que sirve como la métrica de rendimiento para el modelo.</li>
+<li>Calcular el promedio de los errores registrados. Esto se llama el <em>error de validación</em> cruzada que sirve como la métrica de rendimiento para el modelo.</li>
 </ul>
 <p>La ventaja más obvia de este método, en comparación con LOOCV, es computacional. Una ventaja menos obvia, pero potencialmente más importante, es que a menudo proporciona estimaciones más precisas de la tasa de error de prueba que LOOCV (James et al., 2014).</p>
 <p>Pregunta clave: ¿cómo elegir el valor correcto de k? No es difícil ver que un valor pequeño de k (p.ej., k=2) nos lleva a un enfoque parecido al del conjunto de validación que vimos en primer lugar. Por el contrario, valores altos de k (p.ej., k=m) nos lleva al enfoque de LOOCV. En general, usaremos valores intermedios (5, 10, incluso 20)</p>
