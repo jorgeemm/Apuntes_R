@@ -110,12 +110,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 body {
   text-align: justify;
 }
-
 /* Estilos específicos para la tabla de contenidos */
 .toc-actions, .toc .nav, .toc .nav > li > a {
   text-align: left !important;
 }
 </style>
+<script>
+// Añadir funcionalidad de zoom para imágenes
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('img.zoomable').forEach(function(img) {
+    img.addEventListener('click', function() {
+      this.classList.toggle('zoomed');
+    });
+  });
+});
+</script>
 
 
 <link rel="stylesheet" href="styles.css">
@@ -153,6 +162,10 @@ body {
   <li class="nav-item">
     <a class="nav-link" href="./99_otras_cosas.html"> 
 <span class="menu-text">Otras cosas</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./../Gráficos/_site/index.html"> 
+<span class="menu-text">Gráficos</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -310,7 +323,7 @@ body {
 <p>Éxisten diferentes métricas para cuantificar la calidad general de los modelos de regresión. Hasta ahora nos hemos centrado en el R<sup>2</sup>, pero hay otros como:</p>
 <ul>
 <li>El <strong>error cuadrático medio</strong> (RMSE), que mide el error predictivo promedio. Es decir, la diferencia promedio entre los valores observados y los valores predichos por el modelo. Cuanto más bajo sea el RMSE, mejor será el modelo.</li>
-<li>El <strong>error absoluto absoluto</strong> (MAE), una alternativa a RMSE que es menos sensible a los valores atípicos. Corresponde a la diferencia promedio, en términos absolutos, entre los resultados observados y predichos. Cuanto más bajo sea el MAE, mejor será el modelo.</li>
+<li>El <strong>error absoluto medio</strong> (MAE), una alternativa a RMSE que es menos sensible a los valores atípicos. Corresponde a la diferencia promedio, en términos absolutos, entre los resultados observados y predichos. Cuanto más bajo sea el MAE, mejor será el modelo.</li>
 </ul>
 <p>Existen diferentes métodos de validación cruzada para evaluar el rendimiento del modelo. A continuación, vamos a ver algunos de los más sencillos y frecuentes.</p>
 </section>
@@ -450,15 +463,15 @@ Coefficients:
 </section>
 <section id="método-leave-one-out-loocv" class="level2">
 <h2 class="anchored" data-anchor-id="método-leave-one-out-loocv">Método <em>Leave-one-out</em> (LOOCV)</h2>
-<p>La validación cruzada dejando uno fuera o método <em>leave-one-out</em> funciona de la siguiente manera:</p>
+<p>La validación cruzada dejando uno fuera (método <em>leave-one-out)</em> funciona de la siguiente manera:</p>
 <ul>
 <li>Dejar un único caso fuera y construye el modelo con el resto del dataset (n-1)</li>
 <li>Valida el modelo con dicho dato, y guarda el error de predicción asociado</li>
 <li>Repite el proceso tantas veces como casos (n) tenemos</li>
 <li>Computa el error de predicción total, que es el promedio de todos los errores estimados en cada paso</li>
 </ul>
-<p>Para cada uno de los casos de la muestra, hace una regresión con todos los otros casos, y testea esta regresión con ese caso que se ha quedado apartado. Este proceso se repite con todos los casos, calculando el error de todas estas regresiones y calculando la media de ellos. Con esta forma de realizar predicciones, todos los casos son usados tanto en la muestra de entrenamiento como en la de testeo. (<em>No tiene por qué ser necesaariamente un mejor modelo que el anterior</em>)</p>
-<p>Vamos a ver un ejemplo con nuestros datos</p>
+<p>Para cada uno de los casos de la muestra, hace una regresión con el resto del dataset, y testea esta regresión con el que se ha quedado apartado. Este proceso se repite con todos los casos, calculando el error de todas estas regresiones y la media de ellos. Con esta forma de realizar predicciones, todos los casos son usados tanto en la muestra de entrenamiento como en la de testeo. (<em>No tiene por qué ser necesariamente un mejor modelo que el anterior</em>)</p>
+<p>Vamos a ver un <strong>ejemplo</strong> con nuestros datos:</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>train.control <span class="ot">&lt;-</span> <span class="fu">trainControl</span>(<span class="at">method=</span><span class="st">"LOOCV"</span>) <span class="co"># Con la función trainControl definimos el tipo de método (loocv en este caso)</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Entrenamos el modelo</span></span>

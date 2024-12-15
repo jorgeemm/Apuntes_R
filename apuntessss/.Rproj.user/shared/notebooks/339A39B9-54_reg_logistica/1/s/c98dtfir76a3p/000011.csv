@@ -1,3 +1,0 @@
-"0","data1 <- with(datos_log, data.frame(ideol = mean(ideol), recuerdo19 = c(""PSOE"",""PP"",""VOX"",""Podemos"",""Ciudadanos"", ""Más Madrid"", ""Otros"", ""En blanco""), edad = mean(edad), hombre=""Hombre"", estudios_universitarios=""con EU"", ecoesp=""negativa""))"
-"0",""
-"0","head(data1, 8)"

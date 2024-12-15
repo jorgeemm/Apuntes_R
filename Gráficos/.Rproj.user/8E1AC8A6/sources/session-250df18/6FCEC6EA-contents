@@ -1,0 +1,349 @@
+---
+title: "p4_perfiles"
+format: html
+editor: visual
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(haven, tidyverse,
+       ggrepel) # Esta librería sirbe para poner números en los puntos de los gráficos sin que se superpongan.
+
+setwd("~/0 - Master/Elecciones y votantes/2_trabajos/ejercicio4")
+```
+
+## Datos
+
+#### Enero 2022
+
+```{r}
+enero2022 <- read_sav("0_datos/enero22.SAV") %>% 
+  rename(recuerdo=RECUVOTOG)%>% 
+  mutate(sanchez = ifelse(LIDERESVALORA_1 > 11, NA_real_, LIDERESVALORA_1), 
+         casado = ifelse(LIDERESVALORA_2 > 11, NA_real_, LIDERESVALORA_2),
+         abascal = ifelse(LIDERESVALORA_4 > 11, NA_real_, LIDERESVALORA_4),
+         preferencia = case_when(
+           casado > sanchez ~ 1, 
+           casado == sanchez ~ 2, 
+           casado < sanchez ~ 3), 
+         preferencia_der = case_when(
+           casado > abascal ~ 1, 
+           casado == abascal ~ 2, 
+           casado < abascal ~ 3), 
+         preferencia = factor(
+           preferencia, 
+           levels = c(1, 2, 3), 
+           labels = c("Casado", 
+                      "Indiferente", 
+                      "Sánchez")), 
+         preferencia_der = factor(
+           preferencia_der, 
+           levels = c(1, 2, 3), 
+           labels = c("Casado", 
+                      "Indiferente", 
+                      "Abascal")),
+         ideol=ifelse(ESCIDEOL>11,NA,ESCIDEOL),
+         recuerdo = case_when(
+    recuerdo == 1 ~ 1, 
+    recuerdo == 2 ~ 2, 
+    recuerdo == 18 ~ 3, 
+    recuerdo %in% c(4, 6, 7, 8, 9, 11, 12, 13, 14, 17, 19, 21, 24, 43, 50, 67, 95) ~ 4,
+    recuerdo %in% c(77, 96, 98, 99) ~ NA_real_), 
+    recuerdo = factor(
+      recuerdo, 
+      levels = c(1, 2, 3, 4), 
+      labels = c("PP", "PSOE", "VOX", "Otros")))
+
+```
+
+#### Abril 2022
+
+```{r}
+abril2022 <- read_sav("0_datos/abril22.sav") %>% 
+  rename(recuerdo=RECUVOTOG) %>% 
+  mutate(sanchez = ifelse(VALORALIDERES_1 > 11, NA_real_, VALORALIDERES_1), 
+         feijoo = ifelse(VALORALIDERES_2 > 11, NA_real_, VALORALIDERES_2), 
+         abascal = ifelse(VALORALIDERES_4 > 11, NA_real_, VALORALIDERES_4),
+         preferencia = case_when(
+           feijoo > sanchez ~ 1, 
+           feijoo == sanchez ~ 2, 
+           feijoo < sanchez ~ 3), 
+         preferencia_der = case_when(
+           feijoo > abascal ~ 1, 
+           feijoo == abascal ~ 2, 
+           feijoo < abascal ~ 3), 
+         preferencia = factor(
+           preferencia, 
+           levels = c(1, 2, 3), 
+           labels = c("Feijoo", 
+                      "Indiferente", 
+                      "Sánchez")), 
+         preferencia_der = factor(
+           preferencia_der, 
+           levels = c(1, 2, 3), 
+           labels = c("Feijoo", 
+                      "Indiferente", 
+                      "Abascal")),
+         ideol=ifelse(ESCIDEOL>11,NA,ESCIDEOL),
+         recuerdo = case_when(
+    recuerdo == 1 ~ 1, 
+    recuerdo == 2 ~ 2, 
+    recuerdo == 18 ~ 3, 
+    recuerdo %in% c(4, 6, 7, 8, 9, 11, 12, 13, 14, 17, 19, 21, 24, 43, 50, 67, 95) ~ 4,
+    recuerdo %in% c(77, 96, 98, 99) ~ NA_real_), 
+    recuerdo = factor(
+      recuerdo, 
+      levels = c(1, 2, 3, 4), 
+      labels = c("PP", "PSOE", "VOX", "Otros")))
+```
+
+#### Octubre 2024
+
+```{r}
+octubre2024 <- read_sav("0_datos/octubre24.sav") %>% 
+  rename(recuerdo=RECUVOTOG) %>% 
+  mutate(sanchez = ifelse(VALORALIDERES_1 > 11, NA_real_, VALORALIDERES_1), 
+         feijoo = ifelse(VALORALIDERES_2 > 11, NA_real_, VALORALIDERES_2), 
+         abascal = ifelse(VALORALIDERES_4 > 11, NA_real_, VALORALIDERES_4),
+         preferencia = case_when(
+           feijoo > sanchez ~ 1, 
+           feijoo == sanchez ~ 2, 
+           feijoo < sanchez ~ 3), 
+         preferencia_der = case_when(
+           feijoo > abascal ~ 1, 
+           feijoo == abascal ~ 2, 
+           feijoo < abascal ~ 3), 
+         preferencia = factor(
+           preferencia, 
+           levels = c(1, 2, 3), 
+           labels = c("Feijoo", 
+                      "Indiferente", 
+                      "Sánchez")), 
+         preferencia_der = factor(
+           preferencia_der, 
+           levels = c(1, 2, 3), 
+           labels = c("Feijoo", 
+                      "Indiferente", 
+                      "Abascal")),
+         ideol=ifelse(ESCIDEOL>11,NA,ESCIDEOL),
+         recuerdo = case_when(
+    recuerdo == 1 ~ 1, 
+    recuerdo == 2 ~ 2, 
+    recuerdo == 3 ~ 3, 
+    recuerdo > 3 & recuerdo < 8996 ~ 4,
+    recuerdo >= 8996 ~ NA_real_), 
+    recuerdo = factor(
+      recuerdo, 
+      levels = c(1, 2, 3, 4), 
+      labels = c("PSOE", "PP", "VOX", "Otros")))
+
+```
+
+## Gráfico ideología
+
+### Datos separados
+
+```{r}
+ideol_psoe <- enero2022 %>% 
+  filter(recuerdo == "PSOE") %>% 
+  count(ideol) %>% 
+  mutate(porcentaje = n / sum(n) * 100,
+         mes="Enero 2022")
+
+pref <- enero2022 %>% 
+  filter(recuerdo=="PSOE") 
+pref <- table(pref$preferencia, pref$ideol) %>% prop.table(2) %>% round(4)*100
+pref <- as.data.frame(pref) %>% 
+  mutate(ideol=as.numeric(Var2),
+         mes="Enero 2022")
+
+ideol_psoe2 <- abril2022 %>% 
+  filter(recuerdo == "PSOE") %>% 
+  count(ideol) %>% 
+  mutate(porcentaje = n / sum(n) * 100,
+         mes = "Abril 2022")
+
+pref2 <- abril2022 %>% 
+  filter(recuerdo=="PSOE") 
+pref2 <- table(pref2$preferencia, pref2$ideol) %>% prop.table(2) %>% round(4)*100
+pref2 <- as.data.frame(pref2) %>% 
+  mutate(ideol=as.numeric(Var2),
+         mes = "Abril 2022")
+
+ideol_psoe3 <- octubre2024 %>% 
+  filter(recuerdo == "PSOE") %>% 
+  count(ideol) %>% 
+  mutate(porcentaje = n / sum(n) * 100,
+         mes = "Octubre 2024")
+
+pref3 <- octubre2024 %>% 
+  filter(recuerdo=="PSOE") 
+pref3 <- table(pref3$preferencia, pref3$ideol) %>% prop.table(2) %>% round(4)*100
+pref3 <- as.data.frame(pref3) %>% 
+  mutate(ideol=as.numeric(Var2),
+         mes = "Octubre 2024")
+```
+
+### Datos juntos
+
+```{r}
+pref_j <- bind_rows(pref,pref2,pref3)%>% 
+  filter(ideol<7) %>% 
+  mutate(Var1 = fct_recode(Var1, "Casado/Feijoo" = "Feijoo", "Casado/Feijoo" = "Casado"),
+         mes = fct_relevel(mes,c("Enero 2022", "Abril 2022", "Octubre 2024")))
+
+ideol_psoe_j <- bind_rows(ideol_psoe,ideol_psoe2,ideol_psoe3) %>% 
+  mutate(mes = factor(mes),
+         mes = fct_relevel(mes,c("Enero 2022", "Abril 2022", "Octubre 2024"))) %>% 
+  filter(ideol<7)
+```
+
+### Gráfico junto
+
+```{r}
+ggplot(ideol_psoe_j, aes(x = ideol)) +
+  #Juntar los tres graficos
+  facet_wrap(~ mes, ncol = 1, strip.position = "top", labeller = label_value) +
+  
+  # Barras (eje primario)
+  geom_bar(aes(y = porcentaje), stat = "identity", fill = "red", alpha = 0.1) +
+  
+  # Puntos (eje secundario)
+  geom_point(data = pref_j, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje), group = Var1, color = Var1), size = 3, alpha = 0.7) +
+  
+  # Etiquetas en los puntos que evitan la superposición
+  geom_text_repel(data = pref_j, 
+                  aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje), 
+                      label = round(Freq, 0)), 
+                  size = 2.7, show.legend = FALSE) +
+  
+  # Tema y etiquetas
+  theme_classic() +
+  labs(
+    x = "Posición ideológica (1-10)",
+    caption = "Evolución de preferencias por cada candidato para los votantes del PSOE según su ideología\n Los valores 7 a 10 de las escala se han omitido debido a la baja frecuencia de votantes socialistas",
+    color = "Preferencia por:"
+  ) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    axis.title = element_text(size = 14),
+    strip.background = element_blank()
+  ) +
+  
+  # Ejes con escalas independientes
+  scale_y_continuous(
+    name = "Porcentaje de votantes", # Eje izquierdo
+    sec.axis = sec_axis(~ . * max(pref_j$Freq) / max(ideol_psoe$porcentaje), name = "Preferencia de candidatos") # Eje derecho
+  ) +
+  scale_color_manual(
+    values = c("Sánchez" = "red", "Casado/Feijoo" = "blue", "Indiferente" = "grey")
+  ) +
+  scale_x_continuous(breaks = seq(1, 6, by = 1))
+
+ggsave("ideol_ambivalentes.png",
+       plot = last_plot(),
+       device = "png", 
+       width = 6,
+       height= 8,
+       dpi=200)
+```
+
+### Gráficos separados
+
+```{r}
+ggplot(ideol_psoe, aes(x = ideol)) +
+  # Barras (eje primario)
+  geom_bar(aes(y = porcentaje), stat = "identity", fill="red", alpha = 0.1)+
+  
+  # Línea (eje secundario)
+  geom_point(data = pref, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje), group = Var1, color=Var1), size=3)+
+  
+  # Tema y etiquetas
+  theme_classic() +
+  labs(
+    x = "Posición ideológica (1-10)",
+    caption = "Evolución de las preferencias por los candidatos para los votantes del PSOE según su ideología"
+  ) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 9),
+    axis.title = element_text(size = 10)
+  ) +
+  
+  # Ejes con escalas independientes
+  scale_y_continuous(
+    name = "Porcentaje de votantes", # Eje izquierdo
+    sec.axis = sec_axis(~ . * max(pref$Freq) / max(ideol_psoe$porcentaje), name = "Preferencia de candidatos"))+ # Eje derecho
+  
+  scale_color_manual(values=c("Sánchez"="red","Casado"="blue","Indiferente"="grey"))+
+  geom_text(data=pref, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje),label = round(Freq, 0)), vjust = 0.25, hjust = -0.7, size = 2.7,show.legend = F)+
+  scale_x_continuous(breaks = seq(1,7,by=2))
+```
+
+```{r}
+ggplot(ideol_psoe2, aes(x = ideol)) +
+  # Barras (eje primario)
+  geom_bar(aes(y = porcentaje), stat = "identity", fill="red", alpha = 0.1)+
+  
+  # Línea (eje secundario)
+  geom_line(data = pref2, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje), group = Var1, color=Var1), size = 0.8)+
+  geom_point(data = pref2, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje), group = Var1, color=Var1))+
+    geom_text(data=pref2, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje),label = round(Freq, 0)), vjust = -0.9, hjust = 0.3, size = 2.7,show.legend = F)+
+  
+  # Tema y etiquetas
+  theme_classic() +
+  labs(
+    x = "Posición ideológica (1-10)",
+    caption = "Evolución de las preferencias por los candidatos para los votantes del PSOE según su ideología"
+  ) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 9),
+    axis.title = element_text(size = 10)
+  ) +
+  
+  # Ejes con escalas independientes
+  scale_y_continuous(
+    name = "Porcentaje de votantes", # Eje izquierdo
+    sec.axis = sec_axis(~ . * max(pref2$Freq) / max(ideol_psoe2$porcentaje), name = "Preferencia de candidatos") # Eje derecho
+  )+
+  scale_color_manual(values=c("Sánchez"="red","Feijoo"="blue","Indiferente"="grey"))+
+  scale_x_continuous(breaks = seq(1,10,by=2))
+```
+
+```{r}
+ggplot(ideol_psoe3, aes(x = ideol)) +
+  # Barras (eje primario)
+  geom_bar(aes(y = porcentaje), stat = "identity", fill="red", alpha = 0.1)+
+  
+  # Línea (eje secundario)
+  geom_line(data = pref3, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje), group = Var1, color=Var1), size = 0.8)+
+  geom_point(data = pref3, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje), group = Var1, color=Var1))+
+    geom_text(data=pref3, aes(x = ideol, y = Freq / max(Freq) * max(ideol_psoe$porcentaje),label = round(Freq, 0)), vjust = -0.9, hjust = 0.3, size = 2.7,show.legend = F)+
+  
+  # Tema y etiquetas
+  theme_classic() +
+  labs(
+    x = "Posición ideológica (1-10)",
+    caption = "Evolución de las preferencias por los candidatos para los votantes del PSOE según su ideología"
+  ) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 9),
+    axis.title = element_text(size = 10)
+  ) +
+  
+  # Ejes con escalas independientes
+  scale_y_continuous(
+    name = "Porcentaje de votantes", # Eje izquierdo
+    sec.axis = sec_axis(~ . * max(pref3$Freq) / max(ideol_psoe3$porcentaje), name = "Preferencia de candidatos") # Eje derecho
+  )+
+  scale_color_manual(values=c("Sánchez"="red","Feijoo"="blue","Indiferente"="grey"))+
+  scale_x_continuous(breaks = seq(1,10,by=2))
+```

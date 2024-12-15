@@ -109,12 +109,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 body {
   text-align: justify;
 }
-
 /* Estilos específicos para la tabla de contenidos */
 .toc-actions, .toc .nav, .toc .nav > li > a {
   text-align: left !important;
 }
 </style>
+<script>
+// Añadir funcionalidad de zoom para imágenes
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('img.zoomable').forEach(function(img) {
+    img.addEventListener('click', function() {
+      this.classList.toggle('zoomed');
+    });
+  });
+});
+</script>
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -181,6 +190,10 @@ window.Quarto = {
   <li class="nav-item">
     <a class="nav-link" href="./99_otras_cosas.html"> 
 <span class="menu-text">Otras cosas</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./../Gráficos/_site/index.html"> 
+<span class="menu-text">Gráficos</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -345,7 +358,7 @@ window.Quarto = {
 <section id="análisis-de-clasificación" class="level2">
 <h2 class="anchored" data-anchor-id="análisis-de-clasificación">Análisis de clasificación</h2>
 <p>La clasificación supervisada es una tarea muy frecuente en todas las áreas de análisis de datos. Existe un gran número de algoritmos desarrollados tanto por la estadística (regresión logística, análisis discriminante) como por la inteligencia artificial (redes neuronales, árboles de decisión, redes bayesianas) diseñados para realizar las tareas propias de la clasificación.</p>
-<p>Vamos a centrarnos en el análisis de regresión logística, una técnica para el análisis de variables dependientes categóricas con dos categorías (dicotómicas), o más (polinómicas). Sirve para modelar la probabilidad de ocurrencia de un evento como función de otros factores, y responder preguntas como:</p>
+<p>Vamos a centrarnos en el análisis de regresión logística, una técnica para el análisis de variables dependientes categóricas con dos categorías (<strong>dicotómicas</strong>) o más (<strong>polinómicas</strong>). Sirve para modelar la probabilidad de ocurrencia de un evento como función de otros factores, y responder preguntas como:</p>
 <ul>
 <li><p>¿Qué factores explican la victoria/derrota de un candidato en unas elecciones?</p></li>
 <li><p>¿Qué variables determinan que una persona vote?</p></li>
@@ -555,7 +568,7 @@ recuerdo19En blanco           -0.85381772  0.49558218</code></pre>
 </section>
 <section id="odds-ratio" class="level2">
 <h2 class="anchored" data-anchor-id="odds-ratio">Odds ratio</h2>
-<p>El <em>odds ratio</em>, o razón de probabilidades se calcula como e<sup><em>coef</em></sup> y es la frecuencia de ocurrencia de un suceso sobre la frecuencia de su no ocurrencia:</p>
+<p>Con el <em>odds</em> <em>ratio</em> lo que hago es exponenciar el coeficiente, osea e exponencial de Beta: <span class="math inline">\(e^{\text{coef}}\)</span> y es la frecuencia de ocurrencia de un suceso sobre la frecuencia de su no ocurrencia:</p>
 <ul>
 <li><p>Odds ratio &gt;1: la variable tiene un efecto positivo sobre la probabilidad de ocurrencia del suceso.</p></li>
 <li><p>0 &gt; Odds ratio &lt;1: la variable tiene un efecto negativo sobre la probabilidad de ocurrencia del suceso.</p></li>
@@ -566,17 +579,18 @@ recuerdo19En blanco           -0.85381772  0.49558218</code></pre>
 <li><p>Odds ratio<sub>ideología</sub>=e<sup>0.290559</sup>=1.337. Para cada punto que nos movemos a la derecha en la escala de ideología, la probabilidad de votar a VOX (sobre votar a otro partido) aumenta en un factor de 1.337 (cuando el resto de variables permanecen constantes). O si se quiere expresar en porcentaje.</p>
 <ul>
 <li>(1,337 - 1)* 100 = 0,337 * 100 = 33,7%</li>
-</ul></li>
+</ul>
+<p>Sale 1,33, el cual es el mismo valor del coeficiente solo que ahora lo calcula las betas elevadas a <span class="math inline">\(e\)</span> para desahacer el logaritmo neperiano.</p></li>
 <li><p>Odds ratio<sub>votó&nbsp;PP(2019)</sub>= e<sup>0.478263</sup>=1,61. La probabilidad de votar a VOX (sobre votar a otro partido) es 1,61 veces mayor entre las personas que en 2019 votaron al PP que entre las personas que en 2019 votaron al PSOE (cuando el resto de variables permanecen constantes). O si se quiere expresar en porcentaje.</p>
 <ul>
 <li>(1,61 - 1)* 100 = 0,61 * 100 = 61%</li>
 </ul></li>
-<li><p>En el caso de que el coeficiente sea negativo, como por ejemplo “opinión sobre la situación de la economía en España” haríamos así: Odds ratio<sub>ecoesp</sub>=e<sup>-1.352050</sup>=0.259. En este caso, la probabilidad de votar a VOX es 0.250 veces menor entre las personas que consideran que la economía nacional va bien, que entre los que consideran que la economía nacional va mal (ceteris paribus). Expresado en porcentaje, sería:</p>
+<li><p>En el caso de que el coeficiente sea negativo, como por ejemplo “opinión sobre la situación de la economía en España” haríamos así: Odds ratio<sub>ecoesp</sub>=e<sup>-1.352050</sup>=0.259. En este caso, la probabilidad de votar a VOX es 0.259 veces menor entre las personas que consideran que la economía nacional va bien, que entre los que consideran que la economía nacional va mal (ceteris paribus). Expresado en porcentaje, sería:</p>
 <ul>
 <li>(1 - 0.259)* 100 = 0.741 * 100 = 74%</li>
 </ul></li>
 </ul>
-<p>Para obtener los coeficientes exponenciados usamos la función <code>exp()</code>:</p>
+<p>Para obtener los coeficientes exponenciados usamos la función <code>exp()</code>: Con este código le estoy pidiendo los odds ratio porque le estoy pidiendo el exponente de los coeficientes de la regresión logística.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="fu">coef</span>(m.vox))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -616,11 +630,14 @@ recuerdo19Otros                0.76614347  0.54999038  1.05146178
 recuerdo19En blanco            0.88379885  0.42578629  1.64145359</code></pre>
 </div>
 </div>
+<p><strong>Comparar coeficientes</strong></p>
 <p>Los odds ratio se pueden comparar entre sí para saber qué variable es más explicativa o está asociada de manera más fuerte con la VD. Pero OJO! Para comparar un odds ratio mayor que uno (relación positiva) con un odds ratio menor que uno (relación negativa), es necesario calcular el valor inverso de uno de los datos porque el rango es distinto. Por ejemplo:</p>
 <ul>
 <li>ecoesp: 1/0,259=3,86</li>
 </ul>
-<p>La inversión de variables también resulta útil en el caso de las variables dicotómicas para comprobar el supuesto contrario al establecido. Por ejemplo, la probabilidad de las mujeres (en lugar del de los hombres) es de 1/2,13=0,47.</p>
+<p>Cuando hacemos esto para poder comparar debemos tener en cuenta que este coeficiente es para la variable de referencia. En este caso 3,86 es para la economíanegativa, porque estamos dandole la vuelta al numerador y denominador.</p>
+<p>La inversión de variables también es útil en el caso de las variables dicotómicas para comprobar el supuesto contrario al establecido. Por ejemplo, la probabilidad de las mujeres (en lugar del de los hombres) es de 1/2,13=0,47.</p>
+<p>Se puede hacer para cualquier tipo de variable, en el caso de la categóricas se invierte a su variable de referencias, y en el caso de las de escala (como la variable ideologia) lo entendemos como el aumento de una unidad.</p>
 </section>
 <section id="probabilidades-predichas" class="level2">
 <h2 class="anchored" data-anchor-id="probabilidades-predichas">Probabilidades predichas</h2>
@@ -641,6 +658,7 @@ recuerdo19En blanco            0.88379885  0.42578629  1.64145359</code></pre>
 8 4.816505  En blanco 52.77877 Hombre                  con EU negativa</code></pre>
 </div>
 </div>
+<p>Este código predice con la media de ideología en la muestra en vez de con ideología = 5, para todos los recuerdos de voto, que esté en la media de edad de la muestra, que sea hombre, con estudios y con una opinión negativa para la economía.</p>
 <p>Es importante que las variables en este <em>data.frame</em> tengan el mismo nombre que las variables en la regresión logística anterior. Una vez creado el <em>data.frame</em>, ya podemos pedirle a R que calcule las probabilidades predichas.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>data1<span class="sc">$</span>probpredichas_vox<span class="ot">&lt;-</span> <span class="fu">predict</span>(m.vox, <span class="at">newdata =</span> data1, <span class="at">type =</span> <span class="st">"response"</span>)</span>
@@ -685,16 +703,15 @@ recuerdo19En blanco            0.88379885  0.42578629  1.64145359</code></pre>
                  recuerdo19VOX  0.3882 0.0146  26.5553 0.0000  0.3596  0.4169</code></pre>
 </div>
 </div>
+<p>También podemos representarlos gráficamente. El gráfico a continuación representa la columna AME (<em>Average Marginal Effect</em>) y las columnas <em>low</em> and <em>upper</em> (bandas de confianza inferior y superior).</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convertimos el resumen en un data.frame para poder hacer un gráfico</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>data_to_plot <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">factor =</span> summary_margins<span class="sc">$</span>factor,</span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">AME =</span> summary_margins<span class="sc">$</span>AME,</span>
 <span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> summary_margins<span class="sc">$</span>lower,</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> summary_margins<span class="sc">$</span>upper</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> summary_margins<span class="sc">$</span>upper)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>También podemos representarlos gráficamente. El gráfico a continuación representa la columna AME (<em>Average Marginal Effect</em>) y las columnas <em>low</em> and <em>upper</em> (bandas de confianza inferior y superior)</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data_to_plot, <span class="fu">aes</span>(<span class="at">x =</span> AME, <span class="at">y =</span> factor)) <span class="sc">+</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span>  <span class="co"># Puntos para los AME</span></span>
@@ -703,13 +720,11 @@ recuerdo19En blanco            0.88379885  0.42578629  1.64145359</code></pre>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Average Marginal Effects (AME) with Confidence Intervals"</span>,</span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"AME"</span>,</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Variables"</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">14</span>),  <span class="co"># Centrar título</span></span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>)  <span class="co"># Ajustar tamaño de texto</span></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Variables"</span>) <span class="sc">+</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">14</span>),  <span class="co"># Centrar título</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>))  <span class="co"># Ajustar tamaño de texto</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -718,8 +733,14 @@ recuerdo19En blanco            0.88379885  0.42578629  1.64145359</code></pre>
 </div>
 </div>
 </div>
-<p>Interpretación: Cuando se dice que un efecto marginal es 0.3882, significa que haber votado a VOX en 2010 está asociado con un aumento promedio de 0.17 unidades en la variable dependiente. En el contexto de una probabilidad o un porcentaje, como suele ser el caso en la regresión logística o modelos similares, un efecto marginal de 0.3882 corresponde a un aumento del 38,82 puntos porcentuales.</p>
+<p>Interpretación: Cuando se dice que un efecto marginal es 0.3882, significa que haber votado a VOX en 2019 está asociado con un aumento promedio de 0.17 unidades en la variable dependiente. En el contexto de una probabilidad o un porcentaje, como suele ser el caso en la regresión logística o modelos similares, un efecto marginal de 0.3882 corresponde a un aumento del 38,82 puntos porcentuales.</p>
+<p>Para hacer un modelo robusto puedes elegir poner las variables con sus valores que conformarían el escenario mas adverso. El escenario que más desfavorece la hipótesis planteada.</p>
 <p>Para más información sobre opciones del paquete margins podéis consultar <a href="https://www.rdocumentation.org/packages/margins/versions/0.3.23">aquí</a> y <a href="https://cran.r-project.org/web/packages/margins/vignettes/Introduction.html">aquí</a>.</p>
+<p><strong>Resumen</strong></p>
+<p>La primera transformación es pasar el logaritmo al otro lado, es decir <span class="math inline">\(e^{\text{coef}}\)</span> –&gt; los odds ratios, porque al otro lado del igual queda <span class="math inline">\((\frac{p(x)}{1 - p(x)})\)</span> , es decir la probabilidad del que el evento suceda partido de la probabilidad de que no suceda.</p>
+<p>La última transfomación de la ecuación nos deja despejado <span class="math inline">\(p(x)\)</span>, de esta manera podemos hacer probabilidades predichas de x sustituyendo los betas y las x (como hacías valores predichos en lm). Como la distribución de la muestra no es lineal los efectos de x no son iguales a lo largo de todo y, de esta manera podemos calcular casos específicos de y. Podemos conocer a lo largo de la regresión la probabilidad de y para cada x seleccionada por nosotros.</p>
+<p>Por último podemos calcular los <em>Average</em> <em>Marginal</em> <em>Effects</em> (<em>margins</em> en Stata). El efecto marginal no es la probabilidad de ocurrencia de x, sino el fecto de la VI sobre la probabilidad de ocurrencia de x. Es la manera de conseguir el equivalente a los coeficientes de la regresión lineal porque calcular todas las y para ciertos valores de x y luego hace el promedio de esos impactos de la x. En el caso de lineales no hace falta transformar nada porque la media del efectos de una VI sobre todos los valores de y es igual a el efecto de de VI sobre un solo valor de y porque es un efecto estable a lo largo de toda la regresión.</p>
+<p>AME se usa principalmente cuando tienes un interés particular por el efecto de una VI.</p>
 </section>
 <section id="diagnóstico" class="level2">
 <h2 class="anchored" data-anchor-id="diagnóstico">Diagnóstico</h2>
@@ -760,12 +781,11 @@ data:  m.vox
 BP = 2273.9, df = 12, p-value &lt; 2.2e-16</code></pre>
 </div>
 </div>
-<p>La hipótesis nula en este test es que la varianza de los residuos es constante. La evidencia permite rechazar la hipótesis nula, confirmando que se cumple el supuesto de heterocedasticidad (que es lo que buscamos)</p>
+<p>La hipótesis nula en este test es que la varianza de los residuos es constante. La evidencia permite rechazar la hipótesis nula, confirmando que se cumple el supuesto de heterocedasticidad (que es lo que buscamos).</p>
 </section>
 </section>
 <section id="presentación-de-los-resultados" class="level2">
 <h2 class="anchored" data-anchor-id="presentación-de-los-resultados">Presentación de los resultados</h2>
-<p>Visualizamos los 2 modelos en una misma tabla</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stargazer)</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -830,8 +850,8 @@ Note:                           *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre
 </section>
 <section id="validación-del-modelos-de-clasificaicón" class="level2">
 <h2 class="anchored" data-anchor-id="validación-del-modelos-de-clasificaicón">Validación del modelos de clasificaicón</h2>
-<p>A continuación, vamos examinar cómo de bueno/malo es nuestro modelo a la hora de clasificar datos nuevos. Para ello, continuamos con el ejemplo anterior, en el que estimábamos la probabilidad de que un individiuo vote a un determinado partido.</p>
-<p>En primer lugar, creamos el conjunto de entrenamiento (60%) y test (40%). Como hay pocos 1 en la muestra (de la var dependiente), se amplia el % de casos destinados al test para evitar que dentro de este la proporción de 1 sea demasiado bajo como para comprobar el modelo.</p>
+<p>A continuación, vamos examinar cómo de bueno/malo es nuestro modelo a la hora de clasificar datos nuevos. Para ello, continuamos con el ejemplo anterior, en el que estimábamos la probabilidad de que un individiuo vote a un determinado partido. Se llama clasficación porque estoy intentado clasificar a los individuos en función de los valores de la VD, que en este caso es 0 y 1.</p>
+<p>En primer lugar, creamos el conjunto de entrenamiento (60%) y test (40%). Como hay pocos 1 en la muestra (de la var dependiente), se amplia el % de casos destinados al test para evitar que dentro de este la proporción de 1 sea demasiado bajo como para comprobar el modelo.Se saca una muestra aleatoria y por eso ponermos el seed, para que nos escoja los mismos datos aleatorios y sea replicable.</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>index <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(datos_log)</span>
@@ -941,7 +961,8 @@ FPR = \frac{FP}{FP + TN}
 </div>
 </div>
 </div>
-<p>Y a continuación, calculamos el area bajo la curva (AUC). El AUC (Área Bajo la Curva) es una métrica que mide el desempeño de un modelo de clasificación binaria. Un valor de AUC:</p>
+<p>Esto se interpreta en función del area que hay debajo de la línea, lo ideal es que el area sea 1 (100%) es decir, que todo lo ha clasificado bien.</p>
+<p>Calculamos el area bajo la curva (AUC). El AUC (Área Bajo la Curva) es una métrica que mide el desempeño de un modelo de clasificación binaria. Un valor de AUC:</p>
 <ul>
 <li><p>1.0: El modelo clasifica perfectamente todas las instancias</p></li>
 <li><p>0.5: El modelo no tiene poder predictivo (es como adivinar al azar)</p></li>
@@ -956,7 +977,7 @@ FPR = \frac{FP}{FP + TN}
 </div>
 </div>
 <p>En nuestro caso, AUC=0.920. Este valor indica que nuestro modelo clasifica bien en un 92% por de los casos.</p>
-<p>Nota: auc es un <em>S4 object system</em>, por eso las consultas de sus elementos son un poco diferentes a lo que hemos visto hasta ahora. Nosotros no vamos a entrar en esto, pero si teneís curiosidad podéis leer <a href="http://adv-r.had.co.nz/S4.html">este capítulo del libro de Hadley Wickham</a>.</p>
+<p>Nota: AUC es un <em>S4 object system</em>, por eso las consultas de sus elementos son un poco diferentes a lo que hemos visto hasta ahora. Nosotros no vamos a entrar en esto, pero si teneís curiosidad podéis leer <a href="http://adv-r.had.co.nz/S4.html">este capítulo del libro de Hadley Wickham</a>.</p>
 </section>
 <section id="comparación-de-modelos" class="level2">
 <h2 class="anchored" data-anchor-id="comparación-de-modelos">Comparación de modelos</h2>
@@ -999,6 +1020,7 @@ ideol                          149.24749
 recuerdo19                     374.84054</code></pre>
 </div>
 </div>
+<p>Le indicamos que haga 500 arboles; mtry es el número de predictores seecionados aleatoriamente. Importance indica que en los 500 arboles que variables han tenido más peso de manera sistemática en todos los modelos. Este valor no lo puedes interpretar pero te hace un ranking, cuanto más altos mejor (Accuracy y Gini). En vez de conocer la significatividad estadística tienemos la importancia de las variables en el modelo. El random forest va apartando poco a pode preditores que no sean relevantes para el modelo, según va haciendo los modelos de manera altearia.</p>
 <p>Cuanto mayor es el número dentro del Accuracy, más relevante es esa variable dentro de la predicción. Que una variable sea más importante que otra no implica que sea mejor, ya que al no tener ninguna medida como el p-valor no se puede saber si la variable es significativa o no. Por tanto, que una variable sea más importante no la hace relevante en sí.</p>
 <p>En este modelo el type se llama “prob” y luego si entre corchetes se pone [1] clasifica sobre los 0 y [,2] quiere decir que clasifica sobre los 1.</p>
 <div class="cell" data-layout-align="center">
@@ -1035,7 +1057,7 @@ recuerdo19                     374.84054</code></pre>
 </section>
 <section id="modelo-de-clasificación-naive-bayes" class="level3">
 <h3 class="anchored" data-anchor-id="modelo-de-clasificación-naive-bayes">Modelo de clasificación Naive Bayes</h3>
-<p>Repetimos el proceso con el algoritmo <a href="https://www.r-bloggers.com/2021/04/naive-bayes-classification-in-r/">Naive Bayes</a></p>
+<p>Repetimos el proceso con el algoritmo <a href="https://www.r-bloggers.com/2021/04/naive-bayes-classification-in-r/">Naive Bayes</a> (misma filosofía que un modelo bayesiano pero es otro modelo de clasificación).</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(e1071)  </span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1138,7 +1160,7 @@ recuerdo19                     374.84054</code></pre>
 </section>
 <section id="mejora-de-modelos" class="level2">
 <h2 class="anchored" data-anchor-id="mejora-de-modelos">Mejora de modelos</h2>
-<p>Vamos a explorar qué ocurre si tomamos en consideracion que algunas variables pueden no tener un efecto lineal. Por ejemplo, la edad. Sabemos por otros estudios que el perfil de edad de los votantes de Vox es diverso, pero el partido tiene un respaldo importante entre votantes de mediana edad (35-54 años). Para tomar en cuenta esto, vamos a elevar ambos la variable edad al cuadrado. Recordad que siempre hay que incluir el efecto principal y el cuadrático</p>
+<p>Vamos a explorar qué ocurre si tomamos en consideración que algunas variables pueden no tener un efecto lineal. Por ejemplo, la edad. Sabemos por otros estudios que el perfil de edad de los votantes de Vox es diverso, pero el partido tiene un respaldo importante entre votantes de mediana edad (35-54 años). Para tomar en cuenta esto, vamos a elevar ambos la variable edad al cuadrado. Recordad que siempre hay que incluir el efecto principal y el cuadrático</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>logit3.vox <span class="ot">&lt;-</span> <span class="fu">glm</span>(intvox <span class="sc">~</span> hombre <span class="sc">+</span> estudios_universitarios <span class="sc">+</span> edad <span class="sc">+</span> <span class="fu">I</span>(edad<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> ecoesp <span class="sc">+</span> ideol <span class="sc">+</span> recuerdo19,</span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> train.data, <span class="at">family =</span> <span class="st">"binomial"</span>)</span>

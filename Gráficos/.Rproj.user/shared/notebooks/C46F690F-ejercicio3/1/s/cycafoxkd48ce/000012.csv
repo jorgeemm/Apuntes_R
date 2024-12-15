@@ -1,0 +1,2 @@
+"0",""
+"0","#ggsave(""tu_grafico.png"", plot = grafico, dpi = 300)"

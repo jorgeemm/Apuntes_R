@@ -21,6 +21,8 @@ website:
         href: 31_analisis_descriptivo.qmd
       - text: "Otras cosas"
         href: 99_otras_cosas.qmd
+      - text: "Gráficos"
+        href: ../Gráficos/_site/index.html
 
 # El menú lateral se escribe así:
   sidebar:
@@ -58,6 +60,13 @@ website:
     - title: "Otras cosas"
       contents:
         - 9_otras_cosas.qmd
+        
+    - title: "Gráficos"
+      contents:
+      - ../Gráficos/_site/g_mancuernas.html
+      - ../Gráficos/_site/g_lineas.html
+      - ../Gráficos/_site/g_barras.html
+      - ../Gráficos/_site/g_otros.html
 
 format:
   html:
@@ -69,18 +78,28 @@ format:
     toc-title: "Contenido"    
     language: es              
     include-in-header:
-      text: |
-        <style>
-        /* Estilos para todo el documento */
-        body {
-          text-align: justify;
-        }
-
-        /* Estilos específicos para la tabla de contenidos */
-        .toc-actions, .toc .nav, .toc .nav > li > a {
-          text-align: left !important;
-        }
-        </style>
+      - text: |
+          <style>
+          /* Estilos para todo el documento */
+          body {
+            text-align: justify;
+          }
+          /* Estilos específicos para la tabla de contenidos */
+          .toc-actions, .toc .nav, .toc .nav > li > a {
+            text-align: left !important;
+          }
+          </style>
+      - text: |
+          <script>
+          // Añadir funcionalidad de zoom para imágenes
+          document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('img.zoomable').forEach(function(img) {
+              img.addEventListener('click', function() {
+                this.classList.toggle('zoomed');
+              });
+            });
+          });
+          </script>
  
 # Configuración global de knitr
 knitr:

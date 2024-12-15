@@ -19,7 +19,7 @@ La idea básica detrás de las técnicas de validación cruzada es la siguiente:
 Éxisten diferentes métricas para cuantificar la calidad general de los modelos de regresión. Hasta ahora nos hemos centrado en el R^2^, pero hay otros como:
 
 -   El **error cuadrático medio** (RMSE), que mide el error predictivo promedio. Es decir, la diferencia promedio entre los valores observados y los valores predichos por el modelo. Cuanto más bajo sea el RMSE, mejor será el modelo.
--   El **error absoluto absoluto** (MAE), una alternativa a RMSE que es menos sensible a los valores atípicos. Corresponde a la diferencia promedio, en términos absolutos, entre los resultados observados y predichos. Cuanto más bajo sea el MAE, mejor será el modelo.
+-   El **error absoluto medio** (MAE), una alternativa a RMSE que es menos sensible a los valores atípicos. Corresponde a la diferencia promedio, en términos absolutos, entre los resultados observados y predichos. Cuanto más bajo sea el MAE, mejor será el modelo.
 
 Existen diferentes métodos de validación cruzada para evaluar el rendimiento del modelo. A continuación, vamos a ver algunos de los más sencillos y frecuentes.
 
@@ -124,16 +124,16 @@ Este método de validación cruzada es útil cuando tenemos una muestra suficien
 
 ## Método *Leave-one-out* (LOOCV)
 
-La validación cruzada dejando uno fuera o método *leave-one-out* funciona de la siguiente manera:
+La validación cruzada dejando uno fuera (método *leave-one-out)* funciona de la siguiente manera:
 
 -   Dejar un único caso fuera y construye el modelo con el resto del dataset (n-1)
 -   Valida el modelo con dicho dato, y guarda el error de predicción asociado
 -   Repite el proceso tantas veces como casos (n) tenemos
 -   Computa el error de predicción total, que es el promedio de todos los errores estimados en cada paso
 
-Para cada uno de los casos de la muestra, hace una regresión con todos los otros casos, y testea esta regresión con ese caso que se ha quedado apartado. Este proceso se repite con todos los casos, calculando el error de todas estas regresiones y calculando la media de ellos. Con esta forma de realizar predicciones, todos los casos son usados tanto en la muestra de entrenamiento como en la de testeo. (*No tiene por qué ser necesaariamente un mejor modelo que el anterior*)
+Para cada uno de los casos de la muestra, hace una regresión con el resto del dataset, y testea esta regresión con el que se ha quedado apartado. Este proceso se repite con todos los casos, calculando el error de todas estas regresiones y la media de ellos. Con esta forma de realizar predicciones, todos los casos son usados tanto en la muestra de entrenamiento como en la de testeo. (*No tiene por qué ser necesariamente un mejor modelo que el anterior*)
 
-Vamos a ver un ejemplo con nuestros datos
+Vamos a ver un **ejemplo** con nuestros datos:
 
 ```{r}
 train.control <- trainControl(method="LOOCV") # Con la función trainControl definimos el tipo de método (loocv en este caso)
