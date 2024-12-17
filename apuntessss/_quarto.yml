@@ -13,8 +13,8 @@ website:
 # El menú de navegación superior se escribe del siguiente modo  
   navbar:
     left:
-      - text: "Introducción a R"  # El título de la pestaña
-        href: 0_index.qmd         # El archivo de referencia que se abrirá cuando se pulse sobre esa pestaña
+      - text: "Introducción a R"
+        href: index.qmd         # El archivo de referencia que se abrirá cuando se pulse sobre esa pestaña
       - text: "Bases de datos y variables"
         href: 21_ficheros_datos.qmd
       - text: "Análisis de datos"
@@ -22,15 +22,14 @@ website:
       - text: "Otras cosas"
         href: 99_otras_cosas.qmd
       - text: "Gráficos"
-        href: ../Gráficos/_site/index.html
+        href: "02_graficos/8g_graficos.qmd"
 
 # El menú lateral se escribe así:
   sidebar:
     - title: "Introducción a R" # Al escribir la opción title, todas las instrucciones y documentos siguientes se aplicarán dentro de la pestaña superior que tiene el mismo nombre.
                                 # Es la forma de añadir una subsecció lateral dentro de las pestañas superiores, pero solo para una parte de los archivos, en lugar de mostrarlos todos.
-      style: "docked"
       contents: 
-        - 0_index.qmd
+        - index.qmd
         - 11_introduccion.qmd
         - 12_documentos_r.qmd
         - 13_flujos_trabajo.qmd
@@ -63,10 +62,11 @@ website:
         
     - title: "Gráficos"
       contents:
-      - ../Gráficos/_site/g_mancuernas.html
-      - ../Gráficos/_site/g_lineas.html
-      - ../Gráficos/_site/g_barras.html
-      - ../Gráficos/_site/g_otros.html
+        - "02_graficos/8g_graficos.qmd"
+        - "02_graficos/8g_mancuernas.qmd"
+        - "02_graficos/8g_lineas.qmd"
+        - "02_graficos/8g_barras.qmd"
+        - "02_graficos/8g_otros.qmd"
 
 format:
   html:

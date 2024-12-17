@@ -73,5 +73,38 @@
   },
   "54_reg_logistica.qmd": {
     "54_reg_logistica.html": "8b60aff9"
+  },
+  "g_graficos.qmd": {
+    "g_graficos.html": "bd28e705"
+  },
+  "02_graficos/g_barras.qmd": {
+    "g_barras.html": "8f1b09fa"
+  },
+  "02_graficos/g_graficos.qmd": {
+    "g_graficos.html": "1f8fc358"
+  },
+  "02_graficos/g_lineas.qmd": {
+    "g_lineas.html": "0936321d"
+  },
+  "02_graficos/g_mancuernas.qmd": {
+    "g_mancuernas.html": "9e816e4c"
+  },
+  "02_graficos/g_otros.qmd": {
+    "g_otros.html": "da92a044"
+  },
+  "02_graficos/8g_barras.qmd": {
+    "8g_barras.html": "5a746c39"
+  },
+  "02_graficos/8g_graficos.qmd": {
+    "8g_graficos.html": "ed57c800"
+  },
+  "02_graficos/8g_lineas.qmd": {
+    "8g_lineas.html": "78fa293d"
+  },
+  "02_graficos/8g_mancuernas.qmd": {
+    "8g_mancuernas.html": "8bd8cf44"
+  },
+  "02_graficos/8g_otros.qmd": {
+    "8g_otros.html": "69de16f4"
   }
 }
