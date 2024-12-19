@@ -1,3 +1,7 @@
 ---
 title: "Apuntes de R"
 ---
+
+Bienvenidos a los apuntes de R de Jorge Martín Marcos, mi mejor obra a día de hoy.
+
+![](http://localhost:6960/images/foto%20jorge%20portada.jpg){fig-align="center" width="313"}
